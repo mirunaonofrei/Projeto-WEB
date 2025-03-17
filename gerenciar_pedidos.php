@@ -27,10 +27,18 @@ foreach ($pedidos as &$pedido) {
                         <a href='controlar_item_pedido.php?num_pedido={$pedido['num_pedido']}'>[Incluir Item]</a>";
 }
 
+
 ?>
 
 <!DOCTYPE html>
 <html>
+<script>
+    $('#win').window({
+        width: 600,
+        height: 400,
+        modal: true
+    });
+</script>
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -40,6 +48,7 @@ foreach ($pedidos as &$pedido) {
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
     <style>
         body {
             background-color: #f4f4f4;
@@ -71,9 +80,10 @@ foreach ($pedidos as &$pedido) {
 
 <body>
     <div class="buttons">
-        <a href="controlar_pedido.php" class="easyui-linkbutton" data-options="iconCls:'icon-add'">Pedido</a>
-        <a href="gerenciar_item.php" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</a>
-        <a href="gerenciar_cliente.php" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</a>
+        <button id="incluir_pedido" class="easyui-linkbutton" data-options="iconCls:'icon-add'">Incluir Pedido</button>
+        <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
+        <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</a>
+
     </div>
     <div class="container">
         <table id="dg" class="easyui-datagrid" style="width:800px;height:400px;"
@@ -88,31 +98,58 @@ foreach ($pedidos as &$pedido) {
         </table>
     </div>
 
-    <script type="text/javascript">
-        $(function() {
-            $('#dg').datagrid({
-                detailFormatter: function(index, row) {
-                    return '<div class="ddv" style="padding:5px 0"></div>';
-                },
-                onExpandRow: function(index, row) {
-                    var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
-                    ddv.panel({
-                        border: false,
-                        cache: false,
-                        href: 'get_itens_pedido.php?num_pedido=' + row.num_pedido,
-                        onLoad: function() {
-                            $('#dg').datagrid('fixDetailRowHeight', index);
-                        }
-                    });
-                    $('#dg').datagrid('fixDetailRowHeight', index);
-                }
-            });
 
-            // Carregar os pedidos via AJAX
-            $('#dg').datagrid('loadData', <?= json_encode($pedidos) ?>);
-        });
-    </script>
+    <div id="win"></div>
 
 </body>
 
 </html>
+
+
+<script type="text/javascript">
+    $(function() {
+        $('#dg').datagrid({
+            detailFormatter: function(index, row) {
+                return '<div class="ddv" style="padding:5px 0"></div>';
+            },
+            onExpandRow: function(index, row) {
+                var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
+                ddv.panel({
+                    border: false,
+                    cache: false,
+                    href: 'get_itens_pedido.php?num_pedido=' + row.num_pedido,
+                    onLoad: function() {
+                        $('#dg').datagrid('fixDetailRowHeight', index);
+                    }
+                });
+                $('#dg').datagrid('fixDetailRowHeight', index);
+            }
+        });
+
+        // Carregar os pedidos via AJAX
+        $('#dg').datagrid('loadData', <?= json_encode($pedidos) ?>);
+    });
+
+
+    $(document).ready(function() {
+        $("#incluir_pedido").click(function() {
+            $('#win').window('refresh', 'controlar_pedido.php'); 
+            $('#win').window('open'); 
+        });
+        $("#gerenciar_itens").click(function() {
+            $('#win').window('refresh', 'gerenciar_item.php'); 
+            $('#win').window('open'); 
+        });
+        $("#gerenciar_clientes").click(function() {
+            $('#win').window('refresh', 'gerenciar_cliente.php'); 
+            $('#win').window('open');
+        });
+    });
+
+    $('#win').window({
+        width: 600,
+        height: 400,
+        modal: true,
+        closed: true // Garante que a janela inicie fechada
+    });
+</script>

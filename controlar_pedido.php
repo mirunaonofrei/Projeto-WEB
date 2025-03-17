@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $conn->prepare("UPDATE pedido SET cod_cliente = :cod_cliente WHERE num_pedido = :num_pedido");
             $_SESSION['mensagem'] = "Pedido atualizado com sucesso!";
         }
-        
+
         $stmt->bindParam(':num_pedido', $num_pedido);
         $stmt->bindParam(':cod_cliente', $cod_cliente);
         $stmt->execute();
@@ -77,50 +77,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controlar Pedido</title>
+    <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+    <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
     <style>
         .erro {
             color: red;
             font-size: 14px;
         }
+
         .sucesso {
             color: green;
             font-size: 16px;
         }
     </style>
 </head>
+
 <body>
+    <!-- <div id="win" class="easyui-window" title="Controlar Pedido" style="width:600px;height:400px;padding:10px;" data-options="modal:true,closed:true"> -->
 
-<h2>Controlar Pedido</h2>
+        <h2>Controlar Pedido</h2>
 
-<!-- Exibir mensagem de sucesso ou erro -->
-<?php if (isset($_SESSION['mensagem'])): ?>
-    <p class="sucesso"><?php echo $_SESSION['mensagem']; ?></p>
-    <?php unset($_SESSION['mensagem']); ?>
-<?php endif; ?>
+        <!-- Exibir mensagem de sucesso ou erro -->
+        <?php if (isset($_SESSION['mensagem'])): ?>
+            <p class="sucesso"><?php echo $_SESSION['mensagem']; ?></p>
+            <?php unset($_SESSION['mensagem']); ?>
+        <?php endif; ?>
 
-<form action="controlar_pedido.php" method="POST">
-    <label for="num_pedido">Número do Pedido:</label>
-    <input type="text" id="num_pedido" name="num_pedido" value="<?php echo htmlspecialchars($num_pedido); ?>" readonly><br><br>
+        <form action="controlar_pedido.php" method="POST">
+            <label for="num_pedido">Número do Pedido:</label>
+            <input type="text" id="num_pedido" name="num_pedido" value="<?php echo htmlspecialchars($num_pedido); ?>" readonly><br><br>
 
-    <label for="cod_cliente">Código do Cliente:</label>
-    <select name="cod_cliente" required>
-        <option value="">Selecione um cliente</option>
-        <?php foreach ($clientes as $cliente): ?>
-            <option value="<?php echo $cliente['cod_cliente']; ?>" <?php echo ($cliente['cod_cliente'] == $cod_cliente) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($cliente['nom_cliente']); ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-    <br><br>
+            <label for="cod_cliente">Código do Cliente:</label>
+            <select name="cod_cliente" required>
+                <option value="">Selecione um cliente</option>
+                <?php foreach ($clientes as $cliente): ?>
+                    <option value="<?php echo $cliente['cod_cliente']; ?>" <?php echo ($cliente['cod_cliente'] == $cod_cliente) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($cliente['nom_cliente']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <br><br>
 
-    <input type="submit" value="Salvar">
-</form>
+            <input type="submit" value="Salvar">
+        </form>
 
-<a href="gerenciar_pedidos.php"><button>Voltar</button></a>
+        <a href="gerenciar_pedidos.php"><button>Voltar</button></a>
+    <!-- </div> -->
+
 
 </body>
+
 </html>
