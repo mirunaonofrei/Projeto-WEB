@@ -22,9 +22,10 @@ $stmt->execute();
 $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 foreach ($pedidos as &$pedido) {
-    $pedido['acoes'] = "<a href='controlar_pedido.php?num_pedido={$pedido['num_pedido']}' >[Modificar Pedido]</a> 
-                        <a href='excluir_pedido.php?num_pedido={$pedido['num_pedido']}' onclick='return confirm(\"Tem certeza que deseja excluir este pedido?\")'>[Excluir Pedido]</a> 
-                        <a href='controlar_item_pedido.php?num_pedido={$pedido['num_pedido']}'>[Incluir Item]</a>";
+    $pedido['acoes'] =
+        "<button class='modificar_pedido easyui-linkbutton' data-options=\"iconCls:'icon-edit'\" data-num_pedido='{$pedido['num_pedido']}'></button>
+    //<button class='excluir_pedido easyui-linkbutton' data-options=\"iconCls:'icon-remove'\" data-num_pedido='{$pedido['num_pedido']}'></button>
+    //<button class='incluir_item easyui-linkbutton' data-options=\"iconCls:'icon-add'\" data-num_pedido='{$pedido['num_pedido']}')'></button>";
 }
 
 
@@ -32,17 +33,10 @@ foreach ($pedidos as &$pedido) {
 
 <!DOCTYPE html>
 <html>
-<script>
-    $('#win').window({
-        width: 600,
-        height: 400,
-        modal: true
-    });
-</script>
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Pedidos - Expand Row</title>
+    <title>PEDIDOS</title>
     <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
     <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
@@ -82,7 +76,7 @@ foreach ($pedidos as &$pedido) {
     <div class="buttons">
         <button id="incluir_pedido" class="easyui-linkbutton" data-options="iconCls:'icon-add'">Incluir Pedido</button>
         <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
-        <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</a>
+        <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
 
     </div>
     <div class="container">
@@ -133,15 +127,32 @@ foreach ($pedidos as &$pedido) {
 
     $(document).ready(function() {
         $("#incluir_pedido").click(function() {
-            $('#win').window('refresh', 'controlar_pedido.php'); 
-            $('#win').window('open'); 
+            $('#win').window('refresh', 'controlar_pedido.php');
+            $('#win').window('open');
         });
         $("#gerenciar_itens").click(function() {
-            $('#win').window('refresh', 'gerenciar_item.php'); 
-            $('#win').window('open'); 
+            $('#win').window('refresh', 'gerenciar_item.php');
+            $('#win').window('open');
         });
         $("#gerenciar_clientes").click(function() {
-            $('#win').window('refresh', 'gerenciar_cliente.php'); 
+            $('#win').window('refresh', 'gerenciar_cliente.php');
+            $('#win').window('open');
+        });
+        $(document).on("click", ".modificar_pedido", function() {
+            let num_pedido = $(this).data("num_pedido");
+            $('#win').window('refresh', 'controlar_pedido.php?num_pedido=' + num_pedido);
+            $('#win').window('open');
+        });
+        $(document).on("click", ".excluir_pedido", function() {
+            let num_pedido = $(this).data("num_pedido");
+            if (confirm("Tem certeza que deseja excluir este pedido?")) {
+                $('#win').window('refresh', 'excluir_pedido.php?num_pedido=' + num_pedido);
+                $('#win').window('open');
+            }
+        });
+        $(document).on("click", ".incluir_item", function() {
+            let num_pedido = $(this).data("num_pedido");
+            $('#win').window('refresh', 'controlar_item_pedido.php?num_pedido=' + num_pedido);
             $('#win').window('open');
         });
     });
