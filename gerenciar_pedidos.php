@@ -81,15 +81,27 @@ foreach ($pedidos as &$pedido) {
     </div>
     <div class="container">
         <table id="dg" class="easyui-datagrid" style="width:800px;height:400px;"
-            data-options="singleSelect:true, fitColumns:true, view:detailview">
+            data-options="
+            singleSelect:true, 
+            fitColumns:true, 
+            view:detailview,
+            toolbar: '#tb',
+            onClickCell: onClickCell,
+            onEndEdit: onEndEdit">
             <thead>
                 <tr>
                     <th data-options="field:'num_pedido', width:80">Pedido</th>
                     <th data-options="field:'nom_cliente', width:200">Cliente</th>
-                    <th data-options="field:'acoes', width:250">Ações do Pedido</th>
                 </tr>
             </thead>
         </table>
+    </div>
+    <div id="tb" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">Append</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">Remove</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="acceptit()">Accept</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject()">Reject</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges()">GetChanges</a>
     </div>
 
 
@@ -109,6 +121,11 @@ foreach ($pedidos as &$pedido) {
             onExpandRow: function(index, row) {
                 var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
                 ddv.panel({
+                    fitColumns: true,
+                    singleSelect: true,
+                    rownumbers: true,
+                    loadMsg: '',
+                    height: 'auto',
                     border: false,
                     cache: false,
                     href: 'get_itens_pedido.php?num_pedido=' + row.num_pedido,
@@ -156,6 +173,57 @@ foreach ($pedidos as &$pedido) {
             $('#win').window('open');
         });
     });
+
+    var editIndex = undefined;
+
+    function endEditing() {
+        if (editIndex == undefined) {
+            return true;
+        }
+        if ($('#dg').datagrid('validateRow', editIndex)) {
+            $('#dg').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function onClickCell(index, field) {
+        if (editIndex != index) {
+            if (endEditing()) {
+                $('#dg').datagrid('selectRow', index)
+                    .datagrid('beginEdit', index);
+                var ed = $('#dg').datagrid('getEditor', {
+                    index: index,
+                    field: field
+                });
+                if (ed) {
+                    ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                }
+                editIndex = index;
+            } else {
+                setTimeout(function() {
+                    $('#dg').datagrid('selectRow', editIndex);
+                }, 0);
+            }
+        }
+    }
+
+    function onEndEdit(index, row) {
+        console.log('Edição finalizada:', row);
+    }
+
+    function acceptit() {
+        if (endEditing()) {
+            $('#dg').datagrid('acceptChanges');
+        }
+    }
+
+    function reject() {
+        $('#dg').datagrid('rejectChanges');
+        editIndex = undefined;
+    }
 
     $('#win').window({
         width: 600,
