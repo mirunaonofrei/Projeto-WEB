@@ -21,13 +21,6 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-foreach ($pedidos as &$pedido) {
-    $pedido['acoes'] =
-        "<button class='modificar_pedido easyui-linkbutton' data-options=\"iconCls:'icon-edit'\" data-num_pedido='{$pedido['num_pedido']}'></button>
-    //<button class='excluir_pedido easyui-linkbutton' data-options=\"iconCls:'icon-remove'\" data-num_pedido='{$pedido['num_pedido']}'></button>
-    //<button class='incluir_item easyui-linkbutton' data-options=\"iconCls:'icon-add'\" data-num_pedido='{$pedido['num_pedido']}')'></button>";
-}
-
 
 ?>
 
@@ -74,7 +67,6 @@ foreach ($pedidos as &$pedido) {
 
 <body>
     <div class="buttons">
-        <button id="incluir_pedido" class="easyui-linkbutton" data-options="iconCls:'icon-add'">Incluir Pedido</button>
         <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
         <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
 
@@ -97,11 +89,11 @@ foreach ($pedidos as &$pedido) {
         </table>
     </div>
     <div id="tb" style="height:auto">
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">Append</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">Remove</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="acceptit()">Accept</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject()">Reject</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges()">GetChanges</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">Adicionar</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">Remover</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="acceptit()">Salvar</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject()">Cancelar</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges()">Ver Mudanças</a>
     </div>
 
 
@@ -142,11 +134,13 @@ foreach ($pedidos as &$pedido) {
     });
 
 
-    $(document).ready(function() {
+    /*$(document).ready(function() {
+        
         $("#incluir_pedido").click(function() {
             $('#win').window('refresh', 'controlar_pedido.php');
             $('#win').window('open');
         });
+        
         $("#gerenciar_itens").click(function() {
             $('#win').window('refresh', 'gerenciar_item.php');
             $('#win').window('open');
@@ -172,13 +166,15 @@ foreach ($pedidos as &$pedido) {
             $('#win').window('refresh', 'controlar_item_pedido.php?num_pedido=' + num_pedido);
             $('#win').window('open');
         });
+        
     });
+*/
 
     var editIndex = undefined;
 
     function endEditing() {
         if (editIndex == undefined) {
-            return true;
+            return true
         }
         if ($('#dg').datagrid('validateRow', editIndex)) {
             $('#dg').datagrid('endEdit', editIndex);
@@ -211,7 +207,31 @@ foreach ($pedidos as &$pedido) {
     }
 
     function onEndEdit(index, row) {
-        console.log('Edição finalizada:', row);
+        var ed = $(this).datagrid('getEditor', {
+            index: index,
+            field: 'num_pedido'
+        });
+        row.nom_cliente = $(ed.target).combobox('getText');
+    }
+
+    function append() {
+        if (endEditing()) {
+            $('#dg').datagrid('appendRow', {
+                status: 'P'
+            });
+            editIndex = $('#dg').datagrid('getRows').length - 1;
+            $('#dg').datagrid('selectRow', editIndex)
+                .datagrid('beginEdit', editIndex);
+        }
+    }
+
+    function removeit() {
+        if (editIndex == undefined) {
+            return
+        }
+        $('#dg').datagrid('cancelEdit', editIndex)
+            .datagrid('deleteRow', editIndex);
+        editIndex = undefined;
     }
 
     function acceptit() {
@@ -223,6 +243,11 @@ foreach ($pedidos as &$pedido) {
     function reject() {
         $('#dg').datagrid('rejectChanges');
         editIndex = undefined;
+    }
+
+    function getChanges() {
+        var rows = $('#dg').datagrid('getChanges');
+        alert(rows.length + ' rows are changed!');
     }
 
     $('#win').window({
