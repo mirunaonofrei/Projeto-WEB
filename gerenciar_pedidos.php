@@ -38,56 +38,49 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
     <style>
         body {
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            text-align: center;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+            background-color: rgb(224, 237, 255);
         }
 
         .buttons {
             display: flex;
-            justify-content: right;
-            align-items: right;
             flex-direction: row;
-            margin-bottom: 15px;
-            margin-top: 15px;
+            justify-content: flex-end;
+            background-color: rgb(155, 198, 255);
         }
 
-        .buttons a {
-            margin: 5px;
+        .datagrid-header,
+        .datagrid-htable {
+            background-color: rgb(155, 198, 255) !important;
         }
     </style>
 </head>
 
 <body>
-    <div class="buttons">
+    <div id="ft" class="buttons">
         <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
         <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
-
     </div>
-    <div class="container">
-        <table id="dg" class="easyui-datagrid" style="width:800px;height:400px;"
+    <div id="p" class="easyui-panel" title="Pedidos" style="width:100%;height:100%;padding:10px; background-color:rgb(210, 229, 255);" data-options="footer:'#ft'">
+        <table id="dg" class="easyui-datagrid" style="height:500px; width: 100%;"
             data-options="
-            iconCls: 'icon-edit',
-            singleSelect:true, 
-            fitColumns:true, 
-            view:detailview,
-            toolbar: '#tb',">
+        iconCls: 'icon-edit',
+        singleSelect:true,
+        fit:true, 
+        fitColumns:true, 
+        view:detailview,
+        footer:'#ft_dg'">
             <thead>
                 <tr>
-                    <th data-options="field:'num_pedido', width:80">Pedido</th>
-                    <th data-options="field:'nom_cliente', width:200">Cliente</th>
+                    <th data-options="field:'num_pedido', width:'30%'">Pedido</th>
+                    <th data-options="field:'nom_cliente', width:'70%'">Cliente</th>
                 </tr>
             </thead>
         </table>
+
+
     </div>
-    <div id="tb" style="height:auto">
+
+    <div id="ft_dg" style="height:auto; background-color:rgb(155, 198, 255);">
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">Adicionar</a>
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">Remover</a>
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="edit()">Editar</a>
@@ -95,7 +88,13 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     </div>
 
 
-    <div id="win"></div>
+    <div id="win" class="easyui-window" title="Confirmar Exclusão" style="width: 300px; height: 150px; padding: 10px;" data-options="modal:true,closed:true">
+        <p>Tem certeza que deseja excluir este pedido?</p>
+        <div style="text-align: center;">
+            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="confirmDelete()">Sim</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="closeWin()">Não</a>
+        </div>
+    </div>
 
 </body>
 
@@ -212,27 +211,49 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     function append() {
         $('#win').window('refresh', 'controlar_pedido.php');
         $('#win').window('open');
-        // $('#dg').datagrid('appendRow', {
-        //     status: 'P'
-        // });
-        // editIndex = $('#dg').datagrid('getRows').length - 1;
-        // $('#dg').datagrid('selectRow', editIndex)
-        //     .datagrid('beginEdit', editIndex);
     }
+    var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
 
     function removeit() {
-        if (editIndex == undefined) {
-            return
+        var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
+        if (row) {
+            pedidoToDelete = row; // Armazena o pedido selecionado
+            $('#win').window('open'); // Abre a janela de confirmação
+        } else {
+            alert("Por favor, selecione um pedido para excluir.");
         }
-        $('#dg').datagrid('cancelEdit', editIndex)
-            .datagrid('deleteRow', editIndex);
-        editIndex = undefined;
     }
 
+    function confirmDelete() {
+        if (pedidoToDelete) {
+            var num_pedido = pedidoToDelete.num_pedido; // Obtém o número do pedido
+            $.ajax({
+                url: 'excluir_pedido.php', // Chama o arquivo PHP para excluir
+                type: 'GET',
+                data: {
+                    num_pedido: num_pedido
+                }, // Passa o número do pedido para exclusão
+                success: function(response) {
+                    if (response == 'sucesso') {
+                        $('#dg').datagrid('reload'); // Recarrega os dados da tabela
+                        $('#win').window('close'); // Fecha a janela de confirmação
+                        alert("Pedido excluído com sucesso!");
+                    } else {
+                        alert("Erro ao excluir o pedido.");
+                    }
+                },
+                error: function() {
+                    alert("Erro ao tentar excluir o pedido.");
+                }
+            });
+        }
+    }
+
+    
     function edit() {
         let num_pedido = $(this).data("num_pedido");
-        if(num_pedido == undefined){
-            return 
+        if (num_pedido == undefined) {
+            return
         }
         $('#win').window('refresh', 'controlar_pedido.php?num_pedido=' + num_pedido);
         $('#win').window('open');
@@ -243,7 +264,7 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         editIndex = undefined;
     }
 
-   
+
 
     $('#win').window({
         width: 600,
