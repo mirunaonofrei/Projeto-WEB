@@ -1,19 +1,12 @@
 <?php
 
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
+require_once 'db.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     $num_pedido = $_GET["num_pedido"];
-    
     // Iniciar transação para garantir que ambas as exclusões aconteçam de forma atômica
     $conn->beginTransaction();
-    
+
     exclui_pedido($conn, $num_pedido);
 
     // Se tudo estiver correto, commit na transação
@@ -25,7 +18,6 @@ try {
     echo "Erro: " . $e->getMessage();
 }
 
-$conn = null;
 
 function exclui_pedido($conn, $num_pedido) {
     // Preparando a instrução SQL de forma segura para evitar SQL Injection

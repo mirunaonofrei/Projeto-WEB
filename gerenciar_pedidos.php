@@ -1,29 +1,3 @@
-<?php
-
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
-
-try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erro: " . $e->getMessage());
-}
-
-$sql = "SELECT pedido.num_pedido, cliente.nom_cliente 
-        FROM pedido 
-        INNER JOIN cliente ON pedido.cod_cliente = cliente.cod_cliente
-        ORDER BY pedido.num_pedido";
-
-$stmt = $conn->prepare($sql);
-$stmt->execute();
-$pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-
-?>
-
 <!DOCTYPE html>
 <html>
 
@@ -63,12 +37,13 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     <div id="p" class="easyui-panel" title="Pedidos" style="width:100%;height:100%;padding:10px; background-color:rgb(210, 229, 255);" data-options="footer:'#ft'">
         <table id="dg" class="easyui-datagrid" style="height:500px; width: 100%;"
             data-options="
-        iconCls: 'icon-edit',
-        singleSelect:true,
-        fit:true, 
-        fitColumns:true, 
-        view:detailview,
-        footer:'#ft_dg'">
+                        iconCls: 'icon-edit',
+                        singleSelect:true,
+                        fit:true, 
+                        fitColumns:true, 
+                        view:detailview,
+                        footer:'#ft_dg',
+                        url: 'buscar_dados_datagrid.php'">
             <thead>
                 <tr>
                     <th data-options="field:'num_pedido', width:'30%'">Pedido</th>
@@ -122,91 +97,10 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 }, 0);
             }
         });
-
-        // Carregar os pedidos via AJAX
-        $('#dg').datagrid('loadData', <?= json_encode($pedidos) ?>);
+        $('#dg').datagrid('loadData');
     });
-
-
-    /*$(document).ready(function() {
-        
-        $("#incluir_pedido").click(function() {
-            $('#win').window('refresh', 'controlar_pedido.php');
-            $('#win').window('open');
-        });
-        
-        $("#gerenciar_itens").click(function() {
-            $('#win').window('refresh', 'gerenciar_item.php');
-            $('#win').window('open');
-        });
-        $("#gerenciar_clientes").click(function() {
-            $('#win').window('refresh', 'gerenciar_cliente.php');
-            $('#win').window('open');
-        });
-        $(document).on("click", ".modificar_pedido", function() {
-            let num_pedido = $(this).data("num_pedido");
-            $('#win').window('refresh', 'controlar_pedido.php?num_pedido=' + num_pedido);
-            $('#win').window('open');
-        });
-        $(document).on("click", ".excluir_pedido", function() {
-            let num_pedido = $(this).data("num_pedido");
-            if (confirm("Tem certeza que deseja excluir este pedido?")) {
-                $('#win').window('refresh', 'excluir_pedido.php?num_pedido=' + num_pedido);
-                $('#win').window('open');
-            }
-        });
-        $(document).on("click", ".incluir_item", function() {
-            let num_pedido = $(this).data("num_pedido");
-            $('#win').window('refresh', 'controlar_item_pedido.php?num_pedido=' + num_pedido);
-            $('#win').window('open');
-        });
-        
-    });
-*/
 
     var editIndex = undefined;
-
-    // function endEditing() {
-    //     if (editIndex == undefined) {
-    //         return true
-    //     }
-    //     if ($('#dg').datagrid('validateRow', editIndex)) {
-    //         $('#dg').datagrid('endEdit', editIndex);
-    //         editIndex = undefined;
-    //         return true;
-    //     } else {
-    //         return false;
-    //     }
-    // }
-
-    // function onClickCell(index, field) {
-    //     if (editIndex != index) {
-    //         if (endEditing()) {
-    //             $('#dg').datagrid('selectRow', index)
-    //                 .datagrid('beginEdit', index);
-    //             var ed = $('#dg').datagrid('getEditor', {
-    //                 index: index,
-    //                 field: field
-    //             });
-    //             if (ed) {
-    //                 ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
-    //             }
-    //             editIndex = index;
-    //         } else {
-    //             setTimeout(function() {
-    //                 $('#dg').datagrid('selectRow', editIndex);
-    //             }, 0);
-    //         }
-    //     }
-    // }
-
-    // function onEndEdit(index, row) {
-    //     var ed = $(this).datagrid('getEditor', {
-    //         index: index,
-    //         field: 'num_pedido'
-    //     });
-    //     row.nom_cliente = $(ed.target).combobox('getText');
-    // }
 
     function append() {
         $('#win').window('refresh', 'controlar_pedido.php');
@@ -225,8 +119,10 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     function confirmDelete() {
+        
         if (pedidoToDelete) {
             var num_pedido = pedidoToDelete.num_pedido; // Obtém o número do pedido
+
             $.ajax({
                 url: 'excluir_pedido.php', // Chama o arquivo PHP para excluir
                 type: 'GET',
@@ -235,9 +131,10 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 }, // Passa o número do pedido para exclusão
                 success: function(response) {
                     if (response == 'sucesso') {
-                        $('#dg').datagrid('reload'); // Recarrega os dados da tabela
                         $('#win').window('close'); // Fecha a janela de confirmação
+                        
                         alert("Pedido excluído com sucesso!");
+                        $('#dg').datagrid('reload'); 
                     } else {
                         alert("Erro ao excluir o pedido.");
                     }
@@ -249,7 +146,7 @@ $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         }
     }
 
-    
+
     function edit() {
         let num_pedido = $(this).data("num_pedido");
         if (num_pedido == undefined) {

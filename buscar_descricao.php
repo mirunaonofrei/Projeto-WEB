@@ -1,13 +1,8 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
+
+require_once 'db.php';
 
 try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     if (isset($_GET['cod_item'])) {
         $cod_item = $_GET['cod_item'];
 

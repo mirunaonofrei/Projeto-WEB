@@ -1,20 +1,8 @@
 <?php
 
-session_start(); // Iniciar a sessão
+require_once 'db.php';
 
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
-
-try {
-    // Conexão com o banco de dados
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo "Erro: " . $e->getMessage();
-    exit();
-}
+//session_start(); CONFERIR SE PODE TIRAR
 
 // Obtém o código do item (caso esteja sendo editado)
 $cod_item = isset($_GET["cod_item"]) ? intval($_GET["cod_item"]) : 0;

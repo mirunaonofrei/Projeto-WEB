@@ -1,20 +1,6 @@
 <?php
 
-session_start(); // Iniciar a sessão
-
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
-
-try {
-    // Conexão com o banco de dados
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo "Erro: " . $e->getMessage();
-    exit();
-}
+require_once 'db.php';
 
 // Obtém o código do cliente (caso esteja sendo editado)
 $cod_cliente = isset($_GET["cod_cliente"]) ? intval($_GET["cod_cliente"]) : 0;

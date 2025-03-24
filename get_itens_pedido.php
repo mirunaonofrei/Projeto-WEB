@@ -1,15 +1,7 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
 
-try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erro: " . $e->getMessage());
-}
+require_once 'db.php';
+
 function consulta_itens($conn, $num_pedido)
 {
     $sql_itens = "SELECT it.num_seq_item, item.den_item, it.qtd_solicitada, it.pre_unitario 

@@ -1,20 +1,6 @@
 <?php
-session_start(); // Iniciar a sessão
 
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
-
-try {
-    // Conexão com o banco de dados
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo "Erro: " . $e->getMessage();
-    exit;
-}
-
+require_once 'db.php';
 
 $stmt = $conn->prepare("SELECT cod_item, den_item FROM item");
 $stmt->execute();

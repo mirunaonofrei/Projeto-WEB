@@ -1,18 +1,9 @@
 <?php
-session_start();
 
-$servername = "localhost";
-$username = "root";
-$password = "12simple36";
-$dbname = "projeto_teste";
+require_once 'db.php';
 
-try {
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo "Erro: " . $e->getMessage();
-    exit();
-}
+//session_start();
+
 
 // Recupera todos os clientes
 $stmt = $conn->prepare("SELECT cod_cliente, nom_cliente FROM cliente");
