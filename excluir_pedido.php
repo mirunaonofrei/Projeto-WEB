@@ -2,30 +2,41 @@
 
 require_once 'db.php';
 
+$num_pedido = $_GET["num_pedido"];
+
+
 try {
-    $num_pedido = $_GET["num_pedido"];
-    // Iniciar transação para garantir que ambas as exclusões aconteçam de forma atômica
-    $conn->beginTransaction();
 
-    exclui_pedido($conn, $num_pedido);
+    $result = $conn->beginTransaction();
 
-    // Se tudo estiver correto, commit na transação
-    $conn->commit();
-    echo "sucesso"; // Retorna sucesso para o AJAX
+    if ($result) $query_item = "DELETE FROM item_pedido WHERE num_pedido = :num_pedido";
+
+    $result = $conn->prepare($query_item);
+    $result->bindParam(':num_pedido', $num_pedido, PDO::PARAM_INT);
+    $result->execute();
+
+    if($result) $query_pedido = "DELETE FROM pedido WHERE num_pedido = :num_pedido";
+    
+    $result = $conn->prepare($query_pedido);
+    $result->bindParam(':num_pedido', $num_pedido, PDO::PARAM_INT);
+    $result->execute();
+
+
+    if ($result) $result = $conn->commit();
+    
+    if ($result) {
+        echo json_encode([
+            "status" => true,
+            "msg" => "Pedido excluído com sucesso!"
+        ]);
+    }
 } catch (PDOException $e) {
-    // Se ocorrer algum erro, faz rollback e exibe erro
     $conn->rollBack();
-    echo "Erro: " . $e->getMessage();
+
+    echo json_encode([
+        "status" => false,
+        "msg" => "Erro ao excluir o pedido: " . $e->getMessage()
+    ]);
 }
 
 
-function exclui_pedido($conn, $num_pedido) {
-    // Preparando a instrução SQL de forma segura para evitar SQL Injection
-    $sql = "DELETE FROM item_pedido WHERE num_pedido = :num_pedido;
-            DELETE FROM pedido WHERE num_pedido = :num_pedido";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':num_pedido', $num_pedido, PDO::PARAM_INT);
-    $stmt->execute();
-}
-?>

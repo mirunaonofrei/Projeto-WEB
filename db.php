@@ -11,3 +11,10 @@ try {
 } catch (PDOException $e) {
     die("Erro: " . $e->getMessage());
 }
+
+
+function showArray($array){
+    echo "<pre>";
+    print_r($array);
+    echo "</pre>";
+}

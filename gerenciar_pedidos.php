@@ -119,30 +119,32 @@
     }
 
     function confirmDelete() {
-        
+
         if (pedidoToDelete) {
             var num_pedido = pedidoToDelete.num_pedido; // Obtém o número do pedido
 
             $.ajax({
-                url: 'excluir_pedido.php', // Chama o arquivo PHP para excluir
-                type: 'GET',
-                data: {
-                    num_pedido: num_pedido
-                }, // Passa o número do pedido para exclusão
-                success: function(response) {
-                    if (response == 'sucesso') {
-                        $('#win').window('close'); // Fecha a janela de confirmação
-                        
-                        alert("Pedido excluído com sucesso!");
-                        $('#dg').datagrid('reload'); 
-                    } else {
-                        alert("Erro ao excluir o pedido.");
+                    url: 'excluir_pedido.php',
+                    type: 'GET',
+                    data: {
+                        num_pedido: num_pedido
                     }
-                },
-                error: function() {
-                    alert("Erro ao tentar excluir o pedido.");
-                }
-            });
+                })
+                .done(function(response) { // Quando a requisição for bem-sucedida
+                    let jsonResponse = JSON.parse(response);
+
+                    if (jsonResponse.status) {
+                        return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
+                            $('#win').window('close');
+                            $('#dg').datagrid('reload');
+                        });
+                    }
+
+                    $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
+                        $('#win').window('close');
+                        $('#dg').datagrid('reload');
+                    });
+                })
         }
     }
 
