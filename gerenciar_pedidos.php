@@ -63,13 +63,11 @@
     </div>
 
 
-    <div id="win" class="easyui-window" title="Confirmar Exclusão" style="width: 300px; height: 150px; padding: 10px;" data-options="modal:true,closed:true">
-        <p>Tem certeza que deseja excluir este pedido?</p>
+    <div id="win" class="easyui-window" title="" style="width: 300px; height: 150px; padding: 10px;" data-options="modal:true,closed:true">
         <div style="text-align: center;">
-            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="confirmDelete()">Sim</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="closeWin()">Não</a>
         </div>
     </div>
+
 
 </body>
 
@@ -106,48 +104,47 @@
         $('#win').window('refresh', 'controlar_pedido.php');
         $('#win').window('open');
     }
-    var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
 
     function removeit() {
+        var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
         var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
         if (row) {
-            pedidoToDelete = row; // Armazena o pedido selecionado
-            $('#win').window('open'); // Abre a janela de confirmação
+            $.messager.confirm({
+                title: 'Exclusão',
+                msg: 'Tem certeza que deseja excluir esse pedido?',
+                fn: function(r) {
+                    if (r) {
+                        pedidoToDelete = row; // Armazena o pedido selecionado
+                        var num_pedido = pedidoToDelete.num_pedido;
+                        $.ajax({
+                                url: 'excluir_pedido.php',
+                                type: 'GET',
+                                data: {
+                                    num_pedido: num_pedido
+                                }
+                            })
+                            .done(function(response) { // Quando a requisição for bem-sucedida
+                                let jsonResponse = JSON.parse(response);
+
+                                if (jsonResponse.status) {
+                                    return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
+                                        $('#dg').datagrid('reload');
+                                    });
+                                }
+
+                                $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
+                                    $('#dg').datagrid('reload');
+                                });
+                            })
+                    }
+                }
+            });
         } else {
-            alert("Por favor, selecione um pedido para excluir.");
+            $.messager.alert('Atenção','Selecione um pedido para ser excluído!','info');
+            $('#dg').datagrid('reload');
+            
         }
     }
-
-    function confirmDelete() {
-
-        if (pedidoToDelete) {
-            var num_pedido = pedidoToDelete.num_pedido; // Obtém o número do pedido
-
-            $.ajax({
-                    url: 'excluir_pedido.php',
-                    type: 'GET',
-                    data: {
-                        num_pedido: num_pedido
-                    }
-                })
-                .done(function(response) { // Quando a requisição for bem-sucedida
-                    let jsonResponse = JSON.parse(response);
-
-                    if (jsonResponse.status) {
-                        return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
-                            $('#win').window('close');
-                            $('#dg').datagrid('reload');
-                        });
-                    }
-
-                    $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
-                        $('#win').window('close');
-                        $('#dg').datagrid('reload');
-                    });
-                })
-        }
-    }
-
 
     function edit() {
         let num_pedido = $(this).data("num_pedido");
