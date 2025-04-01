@@ -75,6 +75,7 @@
 
 
 <script type="text/javascript">
+    
     $(function() {
         $('#dg').datagrid({
             detailFormatter: function(index, row) {
