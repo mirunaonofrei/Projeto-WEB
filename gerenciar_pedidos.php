@@ -30,14 +30,9 @@
 </head>
 
 <body>
-    <div id="ft" class="buttons">
-        <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
-        <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
-    </div>
     <div id="p" class="easyui-panel" title="Pedidos" style="width:100%;height:100%;padding:10px; background-color:rgb(210, 229, 255);" data-options="footer:'#ft'">
         <table id="dg" class="easyui-datagrid" style="height:500px; width: 100%;"
             data-options="
-                        iconCls: 'icon-edit',
                         singleSelect:true,
                         fit:true, 
                         fitColumns:true, 
@@ -56,17 +51,23 @@
     </div>
 
     <div id="ft_dg" style="height:auto; background-color:rgb(155, 198, 255);">
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">Adicionar</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">Remover</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="edit()">Editar</a>
-        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject()">Cancelar</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionar()">Adicionar</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="remover()">Remover</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editar()">Editar</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelar()">Cancelar</a>
+    </div>
+    <div id="ft" class="buttons">
+        <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
+        <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
     </div>
 
-
+    <!-- 
     <div id="win" class="easyui-window" title="" style="width: 300px; height: 150px; padding: 10px;" data-options="modal:true,closed:true">
         <div style="text-align: center;">
-        </div>
+        </div> 
     </div>
+    -->
+
 
 
 </body>
@@ -75,15 +76,14 @@
 
 
 <script type="text/javascript">
-    
-    $(function() {
-        $('#dg').datagrid({
-            detailFormatter: function(index, row) {
-                return '<div class="ddv" style="padding:5px 0"></div>';
+    $(function() { // só executa depois que a pagina carregar
+        $('#dg').datagrid({ // seleciona d tabela com id = "dg"
+            detailFormatter: function(index, row) { // define o conteudo das linhas que expandem, passa como parametro o indez da linha e os dados dela
+                return '<div class="ddv" style="padding:5px 0"></div>'; //
             },
-            onExpandRow: function(index, row) {
-                var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
-                ddv.panel({
+            onExpandRow: function(index, row) { 
+                var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv'); // ddv armazena o elemento div class="ddv"
+                ddv.panel({ // converte a div em um panel EasyUI e carrega os dadosdo pedido usando AJAX
                     href: 'get_itens_pedido.php?num_pedido=' + row.num_pedido,
                     border: false,
                     cache: false,
@@ -99,14 +99,16 @@
         $('#dg').datagrid('loadData');
     });
 
-    var editIndex = undefined;
+    //var editIndex = undefined; ---- ver se da pra tirar
 
-    function append() {
-        $('#win').window('refresh', 'controlar_pedido.php');
-        $('#win').window('open');
+    function adicionar() {
+        $.get('adicionar_pedido.php', function(num_pedido) {
+        $('#numPedido').textbox('setValue', num_pedido);
+        $('#dlgPedido').dialog('open');
+    });
     }
 
-    function removeit() {
+    function remover() {
         var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
         var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
         if (row) {
@@ -141,13 +143,13 @@
                 }
             });
         } else {
-            $.messager.alert('Atenção','Selecione um pedido para ser excluído!','info');
+            $.messager.alert('Atenção', 'Selecione um pedido para ser excluído!', 'info');
             $('#dg').datagrid('reload');
-            
+
         }
     }
 
-    function edit() {
+    function editar() {
         let num_pedido = $(this).data("num_pedido");
         if (num_pedido == undefined) {
             return
@@ -156,8 +158,8 @@
         $('#win').window('open');
     }
 
-    function reject() {
-        $('#dg').datagrid('rejectChanges');
+    function cancelar() {
+        $('#dg').datagrid('cancelarChanges');
         editIndex = undefined;
     }
 

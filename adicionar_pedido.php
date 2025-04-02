@@ -1,72 +1,34 @@
-<?php
+<?php /////////////////////////////      USAR WINDOW.PROMPT PARA ISSO
 
 require_once 'db.php';
 
-//session_start();
-$sql_recupera_clientes = "SELECT cod_cliente, nom_cliente FROM cliente"; // Recupera todos os clientes
-$stmt = $conn->prepare($sql_recupera_clientes);
+$queryRecuperaClientes = "SELECT cod_cliente, nom_cliente FROM cliente"; // Recupera todos os clientes
+$stmt = $conn->prepare($queryRecuperaClientes);
 $stmt->execute();
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $num_pedido = isset($_GET["num_pedido"]) ? $_GET["num_pedido"] : "";
 
-// Se existir um num_pedido na URL, carrega os dados do pedido
-if ($num_pedido != "") {
-    $stmt = $conn->prepare("SELECT * FROM pedido WHERE num_pedido = :num_pedido");
-    $stmt->bindParam(':num_pedido', $num_pedido);
-    $stmt->execute();
-    $pedido = $stmt->fetch();
-    $cod_cliente = $pedido ? $pedido['cod_cliente'] : "";
-} else {
+$queryProxPedido = "SELECT (COALESCE(MAX(num_pedido), 0) + 1) AS num_pedido FROM pedido";
+$exeProxPedido = $conn->prepare($queryProxPedido);
+$exeProxPedido->execute();
+$rowProxPedido = $exeProxPedido->fetch(PDO::FETCH_ASSOC);
+$num_pedido =  $rowProxPedido['num_pedido'];
+$cod_cliente = "";
 
-    // salvar_pedido.php
-
-    // Se não existir num_pedido, gera o próximo número de pedido
-    $queryProxPedido = "SELECT (COALESCE(MAX(num_pedido), 0) + 1) AS num_pedido FROM pedido";
-    $exeProxPedido = $conn->prepare($queryProxPedido);
-    $exeProxPedido->execute();
-    $rowProxPedido = $exeProxPedido->fetch(PDO::FETCH_ASSOC);
-    $num_pedido =  $rowProxPedido['num_pedido'];
-    $cod_cliente = "";
-}
 
 // Processa o envio do formulário via POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cod_cliente = $_POST["cod_cliente"];
     $num_pedido = $_POST["num_pedido"];
 
-    try {
-        // Verifica se o pedido já existe
-        $stmt = $conn->prepare("SELECT * FROM pedido WHERE num_pedido = :num_pedido");
-        $stmt->bindParam(':num_pedido', $num_pedido);
-        $stmt->execute();
-        $pedido = $stmt->fetch();
+    $queryInserePedido = "INSERT INTO pedido (num_pedido, cod_cliente) VALUES (:num_pedido, :cod_cliente)";
+    $stmt = $conn->prepare($queryInserePedido);
+    $stmt->bindParam(':num_pedido', $num_pedido);
+    $stmt->bindParam(':cod_cliente', $cod_cliente);
+    $stmt->execute();
 
-        if (!$pedido) {
-            // Se o pedido não existir, insere um novo
-
-            // salvar_pedido.php
-            $stmt = $conn->prepare("INSERT INTO pedido (num_pedido, cod_cliente) VALUES (:num_pedido, :cod_cliente)");
-            $stmt->bindParam(':num_pedido', $num_pedido);
-            $stmt->bindParam(':cod_cliente', $cod_cliente);
-            $stmt->execute();
-            echo "<div class='mensagem sucesso'>Pedido inserido com sucesso!</div>";
-        } else {
-            // Se o pedido já existir, atualiza o cliente
-
-            // editar_pedido.php
-
-            $stmt = $conn->prepare("UPDATE pedido SET cod_cliente = :cod_cliente WHERE num_pedido = :num_pedido");
-            $stmt->bindParam(':num_pedido', $num_pedido);
-            $stmt->bindParam(':cod_cliente', $cod_cliente);
-            $stmt->execute();
-
-            echo "<div class='mensagem sucesso'>Pedido atualizado com sucesso!</div>";
-        }
-    } catch (PDOException $e) {
-        // Exibe mensagem de erro
-        echo "<div class='mensagem erro'>Erro ao inserir ou atualizar o pedido: " . $e->getMessage() . "</div>";
-    }
+    echo "<div class='mensagem sucesso'>Pedido inserido com sucesso!</div>";
     exit(); // Evita que o código abaixo seja executado após o envio via AJAX
 }
 
@@ -118,19 +80,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <div style="margin-bottom:10px">
-                <select class="easyui-combobox" label="Cliente:" name="cod_cliente" required style="width:100%;">
-                    <option value="">Selecione um cliente</option>
-                    <?php foreach ($clientes as $cliente): ?>
-                        <option value="<?php echo $cliente['cod_cliente']; ?>" <?php echo ($cliente['cod_cliente'] == $cod_cliente) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($cliente['nom_cliente']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+
             </div>
 
             <div style="text-align:center">
-                <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:80px" onclick="salvarForm()">Salvar</a>
+                <!-- <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:80px" onclick="salvarForm()">Salvar</a> -->
 
                 <!-- <input type="submit" class="easyui-linkbutton" data-options="iconCls:'icon-save'" value="Salvar"> -->
             </div>
@@ -148,6 +103,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     <script type="text/javascript">
+        $(function() {
+            $.messager.alert('Inserindo Pedido', 'Pedido inserido/atualizado com sucesso!', 'info', function(r) {
+                    //         $('#dg').datagrid('reload');
+                      });
+        });
+        
         function salvarForm() {
 
             var formData = $(this).serialize();
