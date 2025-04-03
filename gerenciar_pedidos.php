@@ -10,6 +10,7 @@
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
+    <script type="text/javascript" src="adicionar_pedido.js"></script>
     <style>
         body {
             background-color: rgb(224, 237, 255);
@@ -81,7 +82,7 @@
             detailFormatter: function(index, row) { // define o conteudo das linhas que expandem, passa como parametro o indez da linha e os dados dela
                 return '<div class="ddv" style="padding:5px 0"></div>'; //
             },
-            onExpandRow: function(index, row) { 
+            onExpandRow: function(index, row) {
                 var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv'); // ddv armazena o elemento div class="ddv"
                 ddv.panel({ // converte a div em um panel EasyUI e carrega os dadosdo pedido usando AJAX
                     href: 'get_itens_pedido.php?num_pedido=' + row.num_pedido,
@@ -102,10 +103,7 @@
     //var editIndex = undefined; ---- ver se da pra tirar
 
     function adicionar() {
-        $.get('adicionar_pedido.php', function(num_pedido) {
-        $('#numPedido').textbox('setValue', num_pedido);
-        $('#dlgPedido').dialog('open');
-    });
+        abrirDialogAdicionarPedido()
     }
 
     function remover() {
@@ -159,7 +157,7 @@
     }
 
     function cancelar() {
-        $('#dg').datagrid('cancelarChanges');
+        $('#dg').datagrid('rejectChanges');
         editIndex = undefined;
     }
 
