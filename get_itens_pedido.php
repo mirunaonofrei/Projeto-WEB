@@ -37,7 +37,6 @@ if (!empty($dados_pedido['itens'])): ?>
                 <th data-options="field:'qtd_solicitada', width:100">Qtde</th>
                 <th data-options="field:'pre_unitario', width:100">Preço</th>
                 <th data-options="field:'total', width:100">Total</th>
-                <th data-options="field:'acoes', width:200">Ações</th>
             </tr>
         </thead>
         <tbody>
@@ -47,13 +46,15 @@ if (!empty($dados_pedido['itens'])): ?>
                     <td><?= $item['qtd_solicitada'] ?></td>
                     <td>R$ <?= number_format($item['pre_unitario'], 2, ',', '.') ?></td>
                     <td>R$ <?= number_format($item['qtd_solicitada'] * $item['pre_unitario'], 2, ',', '.') ?></td>
-                    <td>
-                        <a href='controlar_item_pedido.php?num_pedido=<?= $num_pedido ?>&num_seq_item=<?= $item['num_seq_item'] ?>'>[Modificar]</a>
-                        <a href='excluir_item_pedido.php?num_pedido=<?= $num_pedido ?>&num_seq_item=<?= $item['num_seq_item'] ?>' onclick='return confirm("Tem certeza que deseja excluir este item?")'>[Excluir]</a>
-                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
+        <div id="ft_dg_i" style="height:auto; background-color:rgb(155, 198, 255);">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionar()">Adicionar</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="remover()">Remover</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editar()">Editar</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelar()">Cancelar</a>
+        </div>
     </table>
 <?php else: ?>
     <p>Nenhum item encontrado para este pedido.</p>

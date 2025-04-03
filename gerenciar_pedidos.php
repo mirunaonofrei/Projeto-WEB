@@ -206,32 +206,32 @@
     }
 
     function editar() {
-    var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
-    if (row) {
-        var pedidoToEdit = row; // Armazena o pedido selecionado
-        var num_pedido = pedidoToEdit.num_pedido;
+        var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
+        if (row) {
+            var pedidoToEdit = row; // Armazena o pedido selecionado
+            var num_pedido = pedidoToEdit.num_pedido;
 
-        $.getJSON('controlar_pedido.php', {
-            num_pedido: num_pedido
-        }, function(data) {
-            if ($('#dialogAddPedido').length) {
-                $('#dialogAddPedido').remove(); // Remove o diálogo se já existir
-            }
+            $.getJSON('controlar_pedido.php', {
+                num_pedido: num_pedido
+            }, function(data) {
+                if ($('#dialogAddPedido').length) {
+                    $('#dialogAddPedido').remove(); // Remove o diálogo se já existir
+                }
 
-            $('body').append('<div id="dialogAddPedido"></div>');
+                $('body').append('<div id="dialogAddPedido"></div>');
 
-            let clienteOptions = `<option value="">Selecione um cliente</option>`;
-            data.clientes.forEach(cliente => {
-                // Verifica se o cliente atual é o mesmo que está associado ao pedido e marca como selected
-                clienteOptions += `<option value="${cliente.cod_cliente}" ${cliente.cod_cliente == pedidoToEdit.cod_cliente ? 'selected' : ''}>${cliente.nom_cliente}</option>`;
-            });
+                let clienteOptions = `<option value="">Selecione um cliente</option>`;
+                data.clientes.forEach(cliente => {
+                    // Verifica se o cliente atual é o mesmo que está associado ao pedido e marca como selected
+                    clienteOptions += `<option value="${cliente.cod_cliente}" ${cliente.cod_cliente == pedidoToEdit.cod_cliente ? 'selected' : ''}>${cliente.nom_cliente}</option>`;
+                });
 
-            $('#dialogAddPedido').dialog({
-                title: 'Editar Pedido',
-                width: 400,
-                height: 'auto',
-                modal: true,
-                content: `<form id="form_adiciona_pedido">
+                $('#dialogAddPedido').dialog({
+                    title: 'Editar Pedido',
+                    width: 400,
+                    height: 'auto',
+                    modal: true,
+                    content: `<form id="form_adiciona_pedido">
                     <div style="margin-bottom:10px">
                         <input class="easyui-textbox" label="Número do Pedido:" name="num_pedido" value="${pedidoToEdit.num_pedido}" readonly style="width:100%;">
                     </div>
@@ -247,45 +247,43 @@
                         <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarForm()">Salvar</a>
                     </div>
                 </form>`,
-                buttons: [{
-                    text: 'Fechar',
-                    handler: function() {
-                        $('#dialogAddPedido').dialog('close');
+                    buttons: [{
+                        text: 'Fechar',
+                        handler: function() {
+                            $('#dialogAddPedido').dialog('close');
+                        }
+                    }]
+                });
+
+                // Captura a mudança no seletor de cliente e atualiza no sistema
+                $('#cod_cliente_form').combobox({
+                    onChange: function(newValue, oldValue) {
+                        // Verifica se o valor do cliente mudou
+                        if (newValue !== oldValue) {
+                            // Atualiza o cliente no banco via AJAX
+                            $.post('controlar_pedido.php', {
+                                num_pedido: num_pedido,
+                                cod_cliente: newValue
+                            }, function(response) {
+                                if (response.status) {
+                                    $.messager.alert('Sucesso', 'Cliente atualizado com sucesso!', 'info');
+                                } else {
+                                    $.messager.alert('Erro', 'Erro ao atualizar cliente.', 'error');
+                                }
+                            });
+                        }
                     }
-                }]
+                });
+
+            }).fail(function() {
+                $.messager.alert('Erro', 'Erro ao carregar os dados do pedido!', 'error');
             });
 
-            // Captura a mudança no seletor de cliente e atualiza no sistema
-            $('#cod_cliente_form').combobox({
-                onChange: function(newValue, oldValue) {
-                    // Verifica se o valor do cliente mudou
-                    if (newValue !== oldValue) {
-                        // Atualiza o cliente no banco via AJAX
-                        $.post('controlar_pedido.php', {
-                            num_pedido: num_pedido,
-                            cod_cliente: newValue
-                        }, function(response) {
-                            if (response.status) {
-                                $.messager.alert('Sucesso', 'Cliente atualizado com sucesso!', 'info');
-                            } else {
-                                $.messager.alert('Erro', 'Erro ao atualizar cliente.', 'error');
-                            }
-                        });
-                    }
-                }
-            });
-
-        }).fail(function() {
-            $.messager.alert('Erro', 'Erro ao carregar os dados do pedido!', 'error');
-        });
-
-    } else {
-        $.messager.alert('Atenção', 'Selecione um pedido para ser editado!', 'info');
-        $('#dg').datagrid('reload');
+        } else {
+            $.messager.alert('Atenção', 'Selecione um pedido para ser editado!', 'info');
+            $('#dg').datagrid('reload');
+        }
     }
-}
-
-
 
     function cancelar() {
         $('#dg').datagrid('rejectChanges');
