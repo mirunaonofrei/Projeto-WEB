@@ -2,7 +2,7 @@
 
 require_once 'db.php';
 
-$queryRecuperaClientes = "SELECT cod_cliente, nom_cliente FROM cliente"; 
+$queryRecuperaClientes = "SELECT cod_cliente, nom_cliente FROM cliente";
 $stmt = $conn->prepare($queryRecuperaClientes);
 $stmt->execute();
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -25,16 +25,21 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
 // Se for requisição POST, insere um novo pedido
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $cod_cliente = $_POST["cod_cliente"];
-    $num_pedido = $_POST["num_pedido"];
+    try {
+        $cod_cliente = $_POST["cod_cliente"];
+        $num_pedido = $_POST["num_pedido"];
 
-    $queryInserePedido = "INSERT INTO pedido (num_pedido, cod_cliente) VALUES (:num_pedido, :cod_cliente)";
-    $stmt = $conn->prepare($queryInserePedido);
-    $stmt->bindParam(':num_pedido', $num_pedido);
-    $stmt->bindParam(':cod_cliente', $cod_cliente);
-    $stmt->execute();
-
-    header('Content-Type: application/json');
-    echo json_encode(["success" => true, "msg" => "Pedido inserido com sucesso!"]);
+        // Inicia a inserção no banco de dados
+        $queryInserePedido = "INSERT INTO pedido (num_pedido, cod_cliente) VALUES (:num_pedido, :cod_cliente)";
+        $stmt = $conn->prepare($queryInserePedido);
+        $stmt->bindParam(':num_pedido', $num_pedido);
+        $stmt->bindParam(':cod_cliente', $cod_cliente);
+        $stmt->execute();
+        header('Content-Type: application/json');
+        echo json_encode(["status" => true]);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        echo json_encode(["status" => false.$e->getMessage()]);
+    }
     exit();
 }

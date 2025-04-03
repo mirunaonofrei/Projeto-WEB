@@ -10,7 +10,6 @@
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
-    <script type="text/javascript" src="adicionar_pedido.js"></script>
     <style>
         body {
             background-color: rgb(224, 237, 255);
@@ -62,14 +61,6 @@
         <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
     </div>
 
-    <!-- 
-    <div id="win" class="easyui-window" title="" style="width: 300px; height: 150px; padding: 10px;" data-options="modal:true,closed:true">
-        <div style="text-align: center;">
-        </div> 
-    </div>
-    -->
-
-
 
 </body>
 
@@ -100,10 +91,77 @@
         $('#dg').datagrid('loadData');
     });
 
-    //var editIndex = undefined; ---- ver se da pra tirar
-
     function adicionar() {
-        abrirDialogAdicionarPedido()
+        $.getJSON('adicionar_pedido.php', function(data) {
+            if ($('#dialogAddPedido').length) {
+                $('#dialogAddPedido').remove();
+            }
+
+            $('body').append('<div id="dialogAddPedido"></div>');
+
+            let clienteOptions = `<option value="">Selecione um cliente</option>`;
+            data.clientes.forEach(cliente => {
+                clienteOptions += `<option value="${cliente.cod_cliente}">${cliente.nom_cliente}</option>`;
+            });
+
+            $('#dialogAddPedido').dialog({
+                title: 'Adicionar Pedido',
+                width: 400,
+                height: 'auto',
+                modal: true,
+                content: `<form id="form_adiciona_pedido">
+                    <div style="margin-bottom:10px">
+                        <input class="easyui-textbox" label="Número do Pedido:" name="num_pedido" value="${data.num_pedido}" readonly style="width:100%;">
+                    </div>
+
+                    <div style="margin-bottom:10px">
+                        <select class="easyui-combobox" label="Cliente:" name="cod_cliente" id="cod_cliente_form" required style="width:100%;">
+                            ${clienteOptions}
+                        </select>
+                    </div>
+
+                    <div style="text-align:center; padding-top: 10px;">
+                        <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarForm()">Salvar</a>
+                    </div>
+                </form>`,
+                buttons: [{
+                    text: 'Fechar',
+                    handler: function() {
+                        $('#dialogAddPedido').dialog('close');
+                    }
+                }]
+            });
+        });
+    }
+
+
+    function salvarForm() {
+        var cliente = $('#cod_cliente_form').val(); 
+        if (!cliente || cliente === "") {
+            $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
+            return; 
+        }
+
+        // Envia a requisição AJAX
+        $.ajax({
+            url: 'adicionar_pedido.php',
+            type: 'POST',
+            data: $('#form_adiciona_pedido').serialize(),
+            success: function(response) {
+                if (response.status) { // Verifique o status da resposta
+                    // Sucesso no pedido, fecha o diálogo e recarrega o datagrid
+                    $('#dg').datagrid('reload');
+                    $('#dialogAddPedido').dialog('close');
+                    $.messager.alert('Sucesso', "Pedido incluído com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', "Erro ao incluir pedido!", 'error');
+                }
+            },
+            error: function() {
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
     }
 
     function remover() {
@@ -148,25 +206,16 @@
     }
 
     function editar() {
-        let num_pedido = $(this).data("num_pedido");
-        if (num_pedido == undefined) {
-            return
-        }
-        $('#win').window('refresh', 'controlar_pedido.php?num_pedido=' + num_pedido);
-        $('#win').window('open');
+        // let num_pedido = $(this).data("num_pedido");
+        // if (num_pedido == undefined) {
+        //     return
+        // }
+        // $('#win').window('refresh', 'controlar_pedido.php?num_pedido=' + num_pedido);
+        // $('#win').window('open');
     }
 
     function cancelar() {
         $('#dg').datagrid('rejectChanges');
         editIndex = undefined;
     }
-
-
-
-    $('#win').window({
-        width: 600,
-        height: 400,
-        modal: true,
-        closed: true // Garante que a janela inicie fechada
-    });
 </script>
