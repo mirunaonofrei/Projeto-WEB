@@ -31,7 +31,7 @@
 
 <body>
     <div id="p" class="easyui-panel" title="Pedidos" style="width:100%;height:100%;padding:10px; background-color:rgb(210, 229, 255);" data-options="footer:'#ft'">
-        <table id="dg" class="easyui-datagrid" style="height:500px; width: 100%;"
+        <table id="dg" class="easyui-datagrid" style="height:450px; width: 100%;"
             data-options="
                         singleSelect:true,
                         fit:true, 
@@ -42,7 +42,7 @@
             <thead>
                 <tr>
                     <th data-options="field:'num_pedido', width:'30%'">Pedido</th>
-                    <th data-options="field:'nom_cliente', width:'69.6%'">Cliente</th>
+                    <th data-options="field:'nom_cliente', width:'69.5%'">Cliente</th>
                 </tr>
             </thead>
         </table>
