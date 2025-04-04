@@ -92,7 +92,7 @@
     });
 
     function adicionar() {
-        $.getJSON('adicionar_pedido.php', function(data) {
+        $.getJSON('pedido_adicionar.php', function(data) {
             if ($('#dialogAddPedido').length) {
                 $('#dialogAddPedido').remove();
             }
@@ -150,7 +150,7 @@
         }
 
         $.ajax({
-            url: 'adicionar_pedido.php',
+            url: 'pedido_adicionar.php',
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
@@ -176,7 +176,7 @@
             var pedidoToEdit = row; // Armazena o pedido selecionado
             var num_pedido = pedidoToEdit.num_pedido;
 
-            $.getJSON('editar_pedido.php', {
+            $.getJSON('pedido_editar.php', {
                 num_pedido: num_pedido
             }, function(data) {
                 if ($('#dialogAddPedido').length) {
@@ -244,7 +244,7 @@
         }
 
         $.ajax({
-            url: 'editar_pedido.php', 
+            url: 'pedido_editar.php', 
             type: 'POST', 
             data: form.serialize(), // Envia os dados do formulário
             dataType: 'json', // Espera uma resposta JSON
@@ -276,7 +276,7 @@
                         pedidoToDelete = row; // Armazena o pedido selecionado
                         var num_pedido = pedidoToDelete.num_pedido;
                         $.ajax({
-                                url: 'excluir_pedido.php',
+                                url: 'pedido_excluir.php',
                                 type: 'GET',
                                 data: {
                                     num_pedido: num_pedido
