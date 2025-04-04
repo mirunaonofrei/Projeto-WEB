@@ -122,7 +122,7 @@
 
                     <div style="text-align:center; padding-top: 10px;">
                         <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarForm()">Salvar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoPedido()">Salvar</a>
                     </div>
                 </form>`,
                 buttons: [{
@@ -136,33 +136,79 @@
     }
 
 
-    function salvarForm() {
-        var cliente = $('#cod_cliente_form').val();
+    function salvarNovoPedido() {
+        var form = $('#dialogAddPedido').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
+        }
+
+        var cliente = form.find('#cod_cliente_form').val();
         if (!cliente || cliente === "") {
             $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
             return;
         }
 
-        // Envia a requisição AJAX
         $.ajax({
             url: 'adicionar_pedido.php',
             type: 'POST',
-            data: $('#form_adiciona_pedido').serialize(),
+            data: form.serialize(),
+            dataType: 'json',
             success: function(response) {
-                if (response.status) { // Verifique o status da resposta
-                    // Sucesso no pedido, fecha o diálogo e recarrega o datagrid
+                if (response.status) {
                     $('#dg').datagrid('reload');
                     $('#dialogAddPedido').dialog('close');
                     $.messager.alert('Sucesso', "Pedido incluído com sucesso!", 'info');
                 } else {
-                    $.messager.alert('Erro', "Erro ao incluir pedido!", 'error');
+                    $.messager.alert('Erro', response.msg || "Erro ao incluir pedido!", 'error');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
                 $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
             }
         });
     }
+
+    function salvarEdicaoPedido() {
+        var form = $('#dialogAddPedido').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
+        }
+
+        var cliente = form.find('#cod_cliente_form').val();
+        if (!cliente || cliente === "") {
+            $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
+            return;
+        }
+
+        // Altere a URL para a correta, que no seu caso seria para o arquivo editar_pedido.php
+        $.ajax({
+            url: 'editar_pedido.php', // A URL correta do PHP que vai processar a requisição
+            type: 'POST', // Certifique-se de que é uma requisição POST
+            data: form.serialize(), // Envie os dados do formulário
+            dataType: 'json', // Espera uma resposta JSON
+            success: function(response) {
+                if (response.status) {
+                    $('#dg').datagrid('reload'); // Recarrega a tabela após sucesso
+                    $('#dialogAddPedido').dialog('close'); // Fecha o formulário de edição
+                    $.messager.alert('Sucesso', "Pedido atualizado com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', response.message || "Erro ao atualizar pedido!", 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
+    }
+
+
+
 
     function remover() {
         var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
@@ -211,19 +257,18 @@
             var pedidoToEdit = row; // Armazena o pedido selecionado
             var num_pedido = pedidoToEdit.num_pedido;
 
-            $.getJSON('controlar_pedido.php', {
+            $.getJSON('editar_pedido.php', {
                 num_pedido: num_pedido
             }, function(data) {
                 if ($('#dialogAddPedido').length) {
-                    $('#dialogAddPedido').remove(); // Remove o diálogo se já existir
+                    $('#dialogAddPedido').remove();
                 }
 
                 $('body').append('<div id="dialogAddPedido"></div>');
 
                 let clienteOptions = `<option value="">Selecione um cliente</option>`;
                 data.clientes.forEach(cliente => {
-                    // Verifica se o cliente atual é o mesmo que está associado ao pedido e marca como selected
-                    clienteOptions += `<option value="${cliente.cod_cliente}" ${cliente.cod_cliente == pedidoToEdit.cod_cliente ? 'selected' : ''}>${cliente.nom_cliente}</option>`;
+                    clienteOptions += `<option value="${cliente.cod_cliente}" ${cliente.cod_cliente == data.cod_cliente ? 'selected' : ''}>${cliente.nom_cliente}</option>`;
                 });
 
                 $('#dialogAddPedido').dialog({
@@ -231,20 +276,18 @@
                     width: 400,
                     height: 'auto',
                     modal: true,
-                    content: `<form id="form_adiciona_pedido">
+                    content: `<form id="form_edita_pedido">
                     <div style="margin-bottom:10px">
-                        <input class="easyui-textbox" label="Número do Pedido:" name="num_pedido" value="${pedidoToEdit.num_pedido}" readonly style="width:100%;">
+                        <input class="easyui-textbox" label="Número do Pedido:" name="num_pedido" value="${data.num_pedido}" readonly style="width:100%;">
                     </div>
-
                     <div style="margin-bottom:10px">
                         <select class="easyui-combobox" label="Cliente:" name="cod_cliente" id="cod_cliente_form" required style="width:100%;">
                             ${clienteOptions}
                         </select>
                     </div>
-
                     <div style="text-align:center; padding-top: 10px;">
                         <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarForm()">Salvar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoPedido()">Salvar</a>
                     </div>
                 </form>`,
                     buttons: [{
@@ -255,25 +298,7 @@
                     }]
                 });
 
-                // Captura a mudança no seletor de cliente e atualiza no sistema
-                $('#cod_cliente_form').combobox({
-                    onChange: function(newValue, oldValue) {
-                        // Verifica se o valor do cliente mudou
-                        if (newValue !== oldValue) {
-                            // Atualiza o cliente no banco via AJAX
-                            $.post('controlar_pedido.php', {
-                                num_pedido: num_pedido,
-                                cod_cliente: newValue
-                            }, function(response) {
-                                if (response.status) {
-                                    $.messager.alert('Sucesso', 'Cliente atualizado com sucesso!', 'info');
-                                } else {
-                                    $.messager.alert('Erro', 'Erro ao atualizar cliente.', 'error');
-                                }
-                            });
-                        }
-                    }
-                });
+
 
             }).fail(function() {
                 $.messager.alert('Erro', 'Erro ao carregar os dados do pedido!', 'error');
@@ -284,6 +309,7 @@
             $('#dg').datagrid('reload');
         }
     }
+
 
     function cancelar() {
         $('#dg').datagrid('rejectChanges');

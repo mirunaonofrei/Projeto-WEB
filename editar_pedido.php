@@ -2,8 +2,11 @@
 
 require_once 'db.php';
 
-// Verifica se num_pedido foi passado
-$num_pedido = isset($_GET['num_pedido']) ? $_GET['num_pedido'] : null;
+// Problema de editar estava aqui
+$num_pedido = isset($_POST['num_pedido']) ? $_POST['num_pedido'] : (isset($_GET['num_pedido']) ? $_GET['num_pedido'] : null);
+
+
+
 
 if ($num_pedido) {
     // Obtém os dados do pedido
@@ -11,6 +14,11 @@ if ($num_pedido) {
     $stmt->bindParam(':num_pedido', $num_pedido);
     $stmt->execute();
     $pedido = $stmt->fetch();
+    if (!$pedido) {
+        echo json_encode(["status" => false, "message" => "Pedido não encontrado"]);
+        exit();
+    }
+
     $cod_cliente = $pedido ? $pedido['cod_cliente'] : "";
 
     // Se for requisição GET, retorna os dados
@@ -23,6 +31,7 @@ if ($num_pedido) {
         header('Content-Type: application/json');
         echo json_encode([
             "num_pedido" => $num_pedido,
+            "cod_cliente" => $cod_cliente,
             "clientes" => $clientes
         ]);
         exit();
@@ -31,6 +40,10 @@ if ($num_pedido) {
     // Processar requisição POST para editar o pedido
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
+            if (!isset($_POST["cod_cliente"]) || !isset($_POST["num_pedido"])) {
+                echo json_encode(["status" => false, "message" => "Dados inválidos"]);
+                exit();
+            }
             $cod_cliente = $_POST["cod_cliente"];
             $num_pedido = $_POST["num_pedido"];
 
@@ -52,3 +65,4 @@ if ($num_pedido) {
     echo json_encode(["status" => false, "message" => "Número do pedido não fornecido"]);
     exit();
 }
+?>
