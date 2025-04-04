@@ -135,7 +135,6 @@
         });
     }
 
-
     function salvarNovoPedido() {
         var form = $('#dialogAddPedido').find('form');
 
@@ -169,86 +168,6 @@
                 $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
             }
         });
-    }
-
-    function salvarEdicaoPedido() {
-        var form = $('#dialogAddPedido').find('form');
-
-        if (!form.length) {
-            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
-            return;
-        }
-
-        var cliente = form.find('#cod_cliente_form').val();
-        if (!cliente || cliente === "") {
-            $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
-            return;
-        }
-
-        // Altere a URL para a correta, que no seu caso seria para o arquivo editar_pedido.php
-        $.ajax({
-            url: 'editar_pedido.php', // A URL correta do PHP que vai processar a requisição
-            type: 'POST', // Certifique-se de que é uma requisição POST
-            data: form.serialize(), // Envie os dados do formulário
-            dataType: 'json', // Espera uma resposta JSON
-            success: function(response) {
-                if (response.status) {
-                    $('#dg').datagrid('reload'); // Recarrega a tabela após sucesso
-                    $('#dialogAddPedido').dialog('close'); // Fecha o formulário de edição
-                    $.messager.alert('Sucesso', "Pedido atualizado com sucesso!", 'info');
-                } else {
-                    $.messager.alert('Erro', response.message || "Erro ao atualizar pedido!", 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro AJAX:", xhr.responseText);
-                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
-            }
-        });
-    }
-
-
-
-
-    function remover() {
-        var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
-        var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
-        if (row) {
-            $.messager.confirm({
-                title: 'Exclusão',
-                msg: 'Tem certeza que deseja excluir esse pedido?',
-                fn: function(r) {
-                    if (r) {
-                        pedidoToDelete = row; // Armazena o pedido selecionado
-                        var num_pedido = pedidoToDelete.num_pedido;
-                        $.ajax({
-                                url: 'excluir_pedido.php',
-                                type: 'GET',
-                                data: {
-                                    num_pedido: num_pedido
-                                }
-                            })
-                            .done(function(response) { // Quando a requisição for bem-sucedida
-                                let jsonResponse = JSON.parse(response);
-
-                                if (jsonResponse.status) {
-                                    return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
-                                        $('#dg').datagrid('reload');
-                                    });
-                                }
-
-                                $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
-                                    $('#dg').datagrid('reload');
-                                });
-                            })
-                    }
-                }
-            });
-        } else {
-            $.messager.alert('Atenção', 'Selecione um pedido para ser excluído!', 'info');
-            $('#dg').datagrid('reload');
-
-        }
     }
 
     function editar() {
@@ -310,6 +229,81 @@
         }
     }
 
+    function salvarEdicaoPedido() {
+        var form = $('#dialogAddPedido').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
+        }
+
+        var cliente = form.find('#cod_cliente_form').val();
+        if (!cliente || cliente === "") {
+            $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: 'editar_pedido.php', 
+            type: 'POST', 
+            data: form.serialize(), // Envia os dados do formulário
+            dataType: 'json', // Espera uma resposta JSON
+            success: function(response) {
+                if (response.status) {
+                    $('#dg').datagrid('reload'); // Recarrega a tabela após sucesso
+                    $('#dialogAddPedido').dialog('close'); // Fecha o formulário de edição
+                    $.messager.alert('Sucesso', "Pedido atualizado com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', response.message || "Erro ao atualizar pedido!", 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
+    }
+
+    function remover() {
+        var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
+        var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
+        if (row) {
+            $.messager.confirm({
+                title: 'Exclusão',
+                msg: 'Tem certeza que deseja excluir esse pedido?',
+                fn: function(r) {
+                    if (r) {
+                        pedidoToDelete = row; // Armazena o pedido selecionado
+                        var num_pedido = pedidoToDelete.num_pedido;
+                        $.ajax({
+                                url: 'excluir_pedido.php',
+                                type: 'GET',
+                                data: {
+                                    num_pedido: num_pedido
+                                }
+                            })
+                            .done(function(response) { // Quando a requisição for bem-sucedida
+                                let jsonResponse = JSON.parse(response);
+
+                                if (jsonResponse.status) {
+                                    return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
+                                        $('#dg').datagrid('reload');
+                                    });
+                                }
+
+                                $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
+                                    $('#dg').datagrid('reload');
+                                });
+                            })
+                    }
+                }
+            });
+        } else {
+            $.messager.alert('Atenção', 'Selecione um pedido para ser excluído!', 'info');
+            $('#dg').datagrid('reload');
+
+        }
+    }
 
     function cancelar() {
         $('#dg').datagrid('rejectChanges');
