@@ -64,19 +64,19 @@ if (!empty($dados_pedido['itens'])): ?>
 <script type="text/javascript">
 
     function adicionarItem() {
-        $.getJSON('adicionar_pedido.php', function(data) {
-            if ($('#dialogAddPedido').length) {
-                $('#dialogAddPedido').remove();
+        $.getJSON('adicionar_item.php', function(data) {
+            if ($('#dialogAddItem').length) {
+                $('#dialogAddItem').remove();
             }
 
-            $('body').append('<div id="dialogAddPedido"></div>');
+            $('body').append('<div id="dialogAddItem"></div>');
 
-            let clienteOptions = `<option value="">Selecione um cliente</option>`;
+            let clienteOptions = `<option value="">Selecione um item</option>`;
             data.clientes.forEach(cliente => {
                 clienteOptions += `<option value="${cliente.cod_cliente}">${cliente.nom_cliente}</option>`;
             });
 
-            $('#dialogAddPedido').dialog({
+            $('#dialogAddItem').dialog({
                 title: 'Adicionar Pedido',
                 width: 400,
                 height: 'auto',
@@ -100,7 +100,7 @@ if (!empty($dados_pedido['itens'])): ?>
                 buttons: [{
                     text: 'Fechar',
                     handler: function() {
-                        $('#dialogAddPedido').dialog('close');
+                        $('#dialogAddItem').dialog('close');
                     }
                 }]
             });
@@ -108,7 +108,7 @@ if (!empty($dados_pedido['itens'])): ?>
     }
 
     function salvarNovoItem() {
-        var form = $('#dialogAddPedido').find('form');
+        var form = $('#dialogAddItem').find('form');
 
         if (!form.length) {
             $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
@@ -129,7 +129,7 @@ if (!empty($dados_pedido['itens'])): ?>
             success: function(response) {
                 if (response.status) {
                     $('#dg').datagrid('reload');
-                    $('#dialogAddPedido').dialog('close');
+                    $('#dialogAddItem').dialog('close');
                     $.messager.alert('Sucesso', "Pedido incluído com sucesso!", 'info');
                 } else {
                     $.messager.alert('Erro', response.msg || "Erro ao incluir pedido!", 'error');
@@ -151,18 +151,18 @@ if (!empty($dados_pedido['itens'])): ?>
             $.getJSON('editar_pedido.php', {
                 num_pedido: num_pedido
             }, function(data) {
-                if ($('#dialogAddPedido').length) {
-                    $('#dialogAddPedido').remove();
+                if ($('#dialogAddItem').length) {
+                    $('#dialogAddItem').remove();
                 }
 
-                $('body').append('<div id="dialogAddPedido"></div>');
+                $('body').append('<div id="dialogAddItem"></div>');
 
                 let clienteOptions = `<option value="">Selecione um cliente</option>`;
                 data.clientes.forEach(cliente => {
                     clienteOptions += `<option value="${cliente.cod_cliente}" ${cliente.cod_cliente == data.cod_cliente ? 'selected' : ''}>${cliente.nom_cliente}</option>`;
                 });
 
-                $('#dialogAddPedido').dialog({
+                $('#dialogAddItem').dialog({
                     title: 'Editar Pedido',
                     width: 400,
                     height: 'auto',
@@ -184,7 +184,7 @@ if (!empty($dados_pedido['itens'])): ?>
                     buttons: [{
                         text: 'Fechar',
                         handler: function() {
-                            $('#dialogAddPedido').dialog('close');
+                            $('#dialogAddItem').dialog('close');
                         }
                     }]
                 });
@@ -202,7 +202,7 @@ if (!empty($dados_pedido['itens'])): ?>
     }
 
     function salvarEdicaoItem() {
-        var form = $('#dialogAddPedido').find('form');
+        var form = $('#dialogAddItem').find('form');
 
         if (!form.length) {
             $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
@@ -223,7 +223,7 @@ if (!empty($dados_pedido['itens'])): ?>
             success: function(response) {
                 if (response.status) {
                     $('#dg').datagrid('reload'); // Recarrega a tabela após sucesso
-                    $('#dialogAddPedido').dialog('close'); // Fecha o formulário de edição
+                    $('#dialogAddItem').dialog('close'); // Fecha o formulário de edição
                     $.messager.alert('Sucesso', "Pedido atualizado com sucesso!", 'info');
                 } else {
                     $.messager.alert('Erro', response.message || "Erro ao atualizar pedido!", 'error');
