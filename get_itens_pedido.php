@@ -30,13 +30,13 @@ $num_pedido = $_GET['num_pedido'];
 $dados_pedido = consulta_itens($conn, $num_pedido);
 
 if (!empty($dados_pedido['itens'])): ?>
-    <table class="easyui-datagrid" style="width:100%;">
+    <table class="easyui-datagrid" style="width:750px;" data-options="footer:'#ft_dg_i'">
         <thead>
             <tr>
-                <th data-options="field:'den_item', width:200">Item</th>
-                <th data-options="field:'qtd_solicitada', width:100">Qtde</th>
-                <th data-options="field:'pre_unitario', width:100">Preço</th>
-                <th data-options="field:'total', width:100">Total</th>
+                <th data-options="field:'den_item', width:304">Item</th>
+                <th data-options="field:'qtd_solicitada', width:148">Qtde</th>
+                <th data-options="field:'pre_unitario', width:148">Preço</th>
+                <th data-options="field:'total', width:148">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -50,10 +50,10 @@ if (!empty($dados_pedido['itens'])): ?>
             <?php endforeach; ?>
         </tbody>
         <div id="ft_dg_i" style="height:auto; background-color:rgb(155, 198, 255);">
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionar()">Adicionar</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="remover()">Remover</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editar()">Editar</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelar()">Cancelar</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionar_item()">Adicionar</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="remover_item()">Remover</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editar_item()">Editar</a>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelar_item()">Cancelar</a>
         </div>
     </table>
 <?php else: ?>

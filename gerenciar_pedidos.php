@@ -42,7 +42,7 @@
             <thead>
                 <tr>
                     <th data-options="field:'num_pedido', width:'30%'">Pedido</th>
-                    <th data-options="field:'nom_cliente', width:'70%'">Cliente</th>
+                    <th data-options="field:'nom_cliente', width:'69.6%'">Cliente</th>
                 </tr>
             </thead>
         </table>
