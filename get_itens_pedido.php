@@ -3,7 +3,7 @@ require_once 'db.php';
 
 function consulta_itens($conn, $num_pedido)
 {
-    $sql_itens = "SELECT it.num_seq_item, item.den_item, it.qtd_solicitada, it.pre_unitario 
+    $sql_itens = "SELECT it.num_seq_item, it.num_pedido, item.den_item, it.qtd_solicitada, it.pre_unitario 
                   FROM item_pedido AS it
                   INNER JOIN item ON it.cod_item = item.cod_item
                   WHERE it.num_pedido = :num_pedido
@@ -32,7 +32,8 @@ if (!empty($dados_pedido['itens'])): ?>
     <table id="dg_i" class="easyui-datagrid" style="width:750px;" data-options="footer:'#ft_dg_i'">
         <thead>
             <tr>
-                <th data-options="field:'den_item', width:304">Item</th>
+                <th data-options="field:'num_seq_item', width:40"></th>
+                <th data-options="field:'den_item', width:264">Item</th>
                 <th data-options="field:'qtd_solicitada', width:148">Qtde</th>
                 <th data-options="field:'pre_unitario', width:148">Preço</th>
                 <th data-options="field:'total', width:148">Total</th>
@@ -41,6 +42,7 @@ if (!empty($dados_pedido['itens'])): ?>
         <tbody>
             <?php foreach ($dados_pedido['itens'] as $item): ?>
                 <tr>
+                    <td><?= $item['num_seq_item']?></td>
                     <td><?= $item['den_item'] ?></td>
                     <td><?= $item['qtd_solicitada'] ?></td>
                     <td>R$ <?= number_format($item['pre_unitario'], 2, ',', '.') ?></td>
@@ -115,35 +117,40 @@ if (!empty($dados_pedido['itens'])): ?>
             $.messager.alert('Erro', 'Preencha todos os campos corretamente.', 'error');
             return;
         }
-
         $.ajax({
             url: 'item_adicionar.php',
             type: 'POST',
             data: form.serialize(),
-            success: function () {
+            success: function() {
                 $('#dialogAddItem').dialog('close');
                 $('#dg').datagrid('reload');
                 $('#dg_i').datagrid('reload');
                 //location.reload(); // recarrega a tabela após sucesso
             },
-            error: function () {
+            error: function() {
                 $.messager.alert('Erro', 'Erro ao adicionar item.', 'error');
             }
         });
     }
 
     function removerItem() {
-        var itemToDelete = null; 
-        var row = $('#dg_i').datagrid('getSelected'); 
+        var itemToDelete = null;
+        var row = $('#dg_i').datagrid('getSelected');
+        const num_pedido = <?= json_encode($num_pedido) ?>;
+
+        // console.log("Linha selecionada:", row);
         if (row) {
             $.messager.confirm({
                 title: 'Exclusão',
                 msg: 'Tem certeza que deseja excluir esse item?',
                 fn: function(r) {
                     if (r) {
-                        itemToDelete = row; 
+                        itemToDelete = row;
                         var num_seq_item = itemToDelete.num_seq_item;
-                        var num_pedido = itemToDelete.num_pedido;
+                        // console.log("Enviando para exclusão:", {
+                        //     num_seq_item: num_seq_item,
+                        //     num_pedido: num_pedido
+                        // });
                         $.ajax({
                                 url: 'item_excluir.php',
                                 type: 'GET',
@@ -152,19 +159,25 @@ if (!empty($dados_pedido['itens'])): ?>
                                     num_pedido: num_pedido
                                 }
                             })
-                            .done(function(response) { // Quando a requisição for bem-sucedida
-                                let jsonResponse = JSON.parse(response);
-
-                                if (jsonResponse.status) {
-                                    return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
+                            .done(function(response) {
+                                if (response.status) {
+                                    $.messager.alert('Processamento Executado', response.msg, 'info', function() {
+                                        $('#dg').datagrid('reload');
+                                        $('#dg_i').datagrid('reload');
+                                    });
+                                } else {
+                                    $.messager.alert('Erro no processamento', response.msg, 'error', function() {
+                                        $('#dg').datagrid('reload');
                                         $('#dg_i').datagrid('reload');
                                     });
                                 }
-
-                                $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
-                                    $('#dg_i').datagrid('reload');
-                                });
                             })
+                            .fail(function(xhr, status, error) {
+                                console.error('Erro na requisição:', status, error);
+                                console.error('Resposta do servidor:', xhr.responseText);
+                                $.messager.alert('Erro fatal', 'Erro ao tentar excluir o item. Verifique o console para mais detalhes.', 'error');
+                            });
+
                     }
                 }
             });
