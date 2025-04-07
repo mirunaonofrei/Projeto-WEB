@@ -3,7 +3,7 @@ require_once 'db.php';
 
 function consulta_itens($conn, $num_pedido)
 {
-    $sql_itens = "SELECT it.num_seq_item, it.num_pedido, item.den_item, it.qtd_solicitada, it.pre_unitario 
+    $sql_itens = "SELECT it.num_seq_item, it.num_pedido, item.den_item, item.cod_item, it.qtd_solicitada, it.pre_unitario
                   FROM item_pedido AS it
                   INNER JOIN item ON it.cod_item = item.cod_item
                   WHERE it.num_pedido = :num_pedido
@@ -40,21 +40,36 @@ if (!empty($dados_pedido['itens'])): ?>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($dados_pedido['itens'] as $item): ?>
+
+            <?php
+            $total_pedido = 0;
+            foreach ($dados_pedido['itens'] as $item):
+                $subtotal = $item['qtd_solicitada'] * $item['pre_unitario'];
+                $total_pedido += $subtotal;
+            ?>
                 <tr>
-                    <td><?= $item['num_seq_item']?></td>
+                    <td><?= $item['num_seq_item'] ?></td>
                     <td><?= $item['den_item'] ?></td>
                     <td><?= $item['qtd_solicitada'] ?></td>
                     <td>R$ <?= number_format($item['pre_unitario'], 2, ',', '.') ?></td>
-                    <td>R$ <?= number_format($item['qtd_solicitada'] * $item['pre_unitario'], 2, ',', '.') ?></td>
+                    <td>R$ <?= number_format($subtotal, 2, ',', '.') ?></td>
                 </tr>
             <?php endforeach; ?>
+
         </tbody>
-        <div id="ft_dg_i" style="height:auto; background-color:rgb(155, 198, 255);">
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionarItem()">Adicionar</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removerItem()">Remover</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editarItem()">Editar</a>
-            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelarItem()">Cancelar</a>
+        <div id="ft_dg_i" style="height:30px; background-color:rgb(155, 198, 255); display:flex; flex-direction: row;">
+            <div style="align-items: left; width: 452px;">
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionarItem()">Adicionar</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removerItem()">Remover</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editarItem()">Editar</a>
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelarItem()">Cancelar</a>
+            </div>
+            <div style="text-align: right;vertical-align: center; width: 148px; padding-top:5px; background-color: white;">
+                <a>Total: &nbsp;</a>
+            </div>
+            <div style="align-items: left;vertical-align: center; width: 148px; padding-top:5px; background-color: white;">
+                <a>&nbsp;R$ <?= number_format($total_pedido, 2, ',', '.') ?></a>
+            </div>
         </div>
     </table>
 <?php else: ?>
@@ -189,14 +204,78 @@ if (!empty($dados_pedido['itens'])): ?>
     }
 
     function editarItem() {
+        const num_pedido = <?= json_encode($num_pedido) ?>;
         const row = $('#dg_i').datagrid('getSelected');
-        if (!row) {
-            $.messager.alert('Atenção', 'Selecione um item para editar.', 'warning');
+
+        if (row) {
+            if ($('#dialogAddItem').length) {
+                $('#dialogAddItem').remove();
+            }
+
+            $('body').append('<div id="dialogAddItem"></div>');
+
+            $.getJSON('item_adicionar.php', function(data) {
+                let itemOptions = `<option value="">Selecione um item</option>`;
+                data.itens_result.forEach(item => {
+                    const selected = item.den_item === row.den_item ? 'selected' : '';
+                    itemOptions += `<option value="${item.cod_item}" ${selected}>${item.den_item}</option>`;
+                });
+
+                $('#dialogAddItem').dialog({
+                    title: 'Editar Item',
+                    width: 400,
+                    height: 'auto',
+                    modal: true,
+                    content: `<form id="form_edita_item">
+                    <input type="hidden" name="num_pedido" value="${num_pedido}">
+                    <input type="hidden" name="num_seq_item" value="${row.num_seq_item}">
+                    <div style="margin-bottom:10px">
+                        <label>Item: </label>
+                        <select class="easyui-combobox" name="cod_item" id="cod_item_form" required style="width:100%;">${itemOptions}</select>
+                    </div>
+                    <div style="margin-bottom:10px">
+                        <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;" value="${row.qtd_solicitada}">
+                    </div>
+                    <div style="margin-bottom:10px">
+                        <input class="easyui-textbox" label="Preço Unitário:" name="pre_unitario" required style="width:100%;" value="${row.pre_unitario}">
+                    </div>
+                    <div style="text-align:center; padding: 10px;">
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
+                    </div>
+                </form>`
+                });
+            });
+
+        } else {
+            $.messager.alert('Atenção', 'Selecione um item para ser editado!', 'info');
+            $('#dg_i').datagrid('reload');
+        }
+    }
+
+    function salvarEdicaoItem() {
+        const form = $('#form_edita_item');
+
+        if (!form.form('validate')) {
+            $.messager.alert('Erro', 'Preencha todos os campos corretamente.', 'error');
             return;
         }
 
-        window.location.href = `item_adicionar.php?num_pedido=<?= $num_pedido ?>&num_seq_item=${row.num_seq_item}`;
+        $.ajax({
+            url: 'item_editar.php',
+            type: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                $('#dialogAddItem').dialog('close');
+                $('#dg').datagrid('reload');
+                $('#dg_i').datagrid('reload');
+            },
+            error: function() {
+                $.messager.alert('Erro', 'Erro ao editar o item.', 'error');
+            }
+        });
     }
+
 
     function cancelarItem() {
         $('#dg_i').datagrid('rejectChanges');
