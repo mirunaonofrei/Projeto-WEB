@@ -29,7 +29,7 @@ $num_pedido = $_GET['num_pedido'];
 $dados_pedido = consulta_itens($conn, $num_pedido);
 
 if (!empty($dados_pedido['itens'])): ?>
-    <table id="dg_i" class="easyui-datagrid" style="width:750px;" data-options="footer:'#ft_dg_i'">
+    <table id="dg_i" class="easyui-datagrid" style="width:750px;" data-options="singleSelect:true, footer:'#ft_dg_i'">
         <thead>
             <tr>
                 <th data-options="field:'num_seq_item', width:40"></th>
