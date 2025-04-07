@@ -1,5 +1,4 @@
 <?php
-
 require_once 'db.php';
 
 function consulta_itens($conn, $num_pedido)
@@ -62,195 +61,94 @@ if (!empty($dados_pedido['itens'])): ?>
 
 
 <script type="text/javascript">
-
     function adicionarItem() {
-        $.getJSON('adicionar_item.php', function(data) {
-            if ($('#dialogAddItem').length) {
-                $('#dialogAddItem').remove();
-            }
+        const num_pedido = <?= json_encode($num_pedido) ?>;
 
-            $('body').append('<div id="dialogAddItem"></div>');
+        if ($('#dialogAddItem').length) {
+            $('#dialogAddItem').remove();
+        }
 
-            let clienteOptions = `<option value="">Selecione um item</option>`;
-            data.clientes.forEach(cliente => {
-                clienteOptions += `<option value="${cliente.cod_cliente}">${cliente.nom_cliente}</option>`;
+        $('body').append('<div id="dialogAddItem"></div>');
+
+        $.getJSON('item_adicionar.php', function(data) {
+            let itemOptions = `<option value="">Selecione um item</option>`;
+            data.itens_result.forEach(item => {
+                itemOptions += `<option value="${item.cod_item}">${item.den_item}</option>`;
             });
 
             $('#dialogAddItem').dialog({
-                title: 'Adicionar Pedido',
+                title: 'Adicionar Item',
                 width: 400,
                 height: 'auto',
                 modal: true,
-                content: `<form id="form_adiciona_pedido">
+                content: `<form id="form_adiciona_item">
+                    <input type="hidden" name="num_pedido" value="${num_pedido}">
                     <div style="margin-bottom:10px">
-                        <input class="easyui-textbox" label="Número do Pedido:" name="num_pedido" value="${data.num_pedido}" readonly style="width:100%;">
-                    </div>
-
+                        <label>Item: </label>
+                        <select class="easyui-combobox" name="cod_item" id="cod_item_form" required style="width:100%;">${itemOptions}</select>
+                        </div>
                     <div style="margin-bottom:10px">
-                        <select class="easyui-combobox" label="Cliente:" name="cod_cliente" id="cod_cliente_form" required style="width:100%;">
-                            ${clienteOptions}
-                        </select>
+            
+                        <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;">
                     </div>
-
-                    <div style="text-align:center; padding-top: 10px;">
-                        <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoPedido()">Salvar</a>
+                    <div style="margin-bottom:10px">
+                        <input class="easyui-textbox" label="Preço Unitário:" name="pre_unitario" required style="width:100%;">
                     </div>
-                </form>`,
-                buttons: [{
-                    text: 'Fechar',
-                    handler: function() {
-                        $('#dialogAddItem').dialog('close');
-                    }
-                }]
+                    <div style="text-align:center; padding: 10px;">
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoItem()">Salvar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
+                    </div>
+                </form>`
             });
         });
     }
 
     function salvarNovoItem() {
-        var form = $('#dialogAddItem').find('form');
-
-        if (!form.length) {
-            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+        const form = $('#form_adiciona_item');
+        var item = form.find('#cod_item_form').val();
+        if (!item || item === "") {
+            $.messager.alert('Erro', 'Selecione um item para continuar.', 'error');
             return;
         }
 
-        var cliente = form.find('#cod_cliente_form').val();
-        if (!cliente || cliente === "") {
-            $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
+        if (!form.form('validate')) {
+            $.messager.alert('Erro', 'Preencha todos os campos corretamente.', 'error');
             return;
         }
 
         $.ajax({
-            url: 'adicionar_pedido.php',
+            url: 'item_adicionar.php',
             type: 'POST',
             data: form.serialize(),
-            dataType: 'json',
-            success: function(response) {
-                if (response.status) {
-                    $('#dg').datagrid('reload');
-                    $('#dialogAddItem').dialog('close');
-                    $.messager.alert('Sucesso', "Pedido incluído com sucesso!", 'info');
-                } else {
-                    $.messager.alert('Erro', response.msg || "Erro ao incluir pedido!", 'error');
-                }
+            success: function () {
+                $('#dialogAddItem').dialog('close');
+                $('#dg').datagrid('reload');
+                $('#dg_i').datagrid('reload');
+                //location.reload(); // recarrega a tabela após sucesso
             },
-            error: function(xhr, status, error) {
-                console.error("Erro AJAX:", xhr.responseText);
-                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
-            }
-        });
-    }
-
-    function editarItem() {
-        var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
-        if (row) {
-            var pedidoToEdit = row; // Armazena o pedido selecionado
-            var num_pedido = pedidoToEdit.num_pedido;
-
-            $.getJSON('editar_pedido.php', {
-                num_pedido: num_pedido
-            }, function(data) {
-                if ($('#dialogAddItem').length) {
-                    $('#dialogAddItem').remove();
-                }
-
-                $('body').append('<div id="dialogAddItem"></div>');
-
-                let clienteOptions = `<option value="">Selecione um cliente</option>`;
-                data.clientes.forEach(cliente => {
-                    clienteOptions += `<option value="${cliente.cod_cliente}" ${cliente.cod_cliente == data.cod_cliente ? 'selected' : ''}>${cliente.nom_cliente}</option>`;
-                });
-
-                $('#dialogAddItem').dialog({
-                    title: 'Editar Pedido',
-                    width: 400,
-                    height: 'auto',
-                    modal: true,
-                    content: `<form id="form_edita_pedido">
-                    <div style="margin-bottom:10px">
-                        <input class="easyui-textbox" label="Número do Pedido:" name="num_pedido" value="${data.num_pedido}" readonly style="width:100%;">
-                    </div>
-                    <div style="margin-bottom:10px">
-                        <select class="easyui-combobox" label="Cliente:" name="cod_cliente" id="cod_cliente_form" required style="width:100%;">
-                            ${clienteOptions}
-                        </select>
-                    </div>
-                    <div style="text-align:center; padding-top: 10px;">
-                        <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoPedido()">Salvar</a>
-                    </div>
-                </form>`,
-                    buttons: [{
-                        text: 'Fechar',
-                        handler: function() {
-                            $('#dialogAddItem').dialog('close');
-                        }
-                    }]
-                });
-
-
-
-            }).fail(function() {
-                $.messager.alert('Erro', 'Erro ao carregar os dados do pedido!', 'error');
-            });
-
-        } else {
-            $.messager.alert('Atenção', 'Selecione um pedido para ser editado!', 'info');
-            $('#dg').datagrid('reload');
-        }
-    }
-
-    function salvarEdicaoItem() {
-        var form = $('#dialogAddItem').find('form');
-
-        if (!form.length) {
-            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
-            return;
-        }
-
-        var cliente = form.find('#cod_cliente_form').val();
-        if (!cliente || cliente === "") {
-            $.messager.alert('Erro', 'Selecione um cliente para continuar.', 'error');
-            return;
-        }
-
-        $.ajax({
-            url: 'editar_pedido.php', 
-            type: 'POST', 
-            data: form.serialize(), // Envia os dados do formulário
-            dataType: 'json', // Espera uma resposta JSON
-            success: function(response) {
-                if (response.status) {
-                    $('#dg').datagrid('reload'); // Recarrega a tabela após sucesso
-                    $('#dialogAddItem').dialog('close'); // Fecha o formulário de edição
-                    $.messager.alert('Sucesso', "Pedido atualizado com sucesso!", 'info');
-                } else {
-                    $.messager.alert('Erro', response.message || "Erro ao atualizar pedido!", 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro AJAX:", xhr.responseText);
-                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            error: function () {
+                $.messager.alert('Erro', 'Erro ao adicionar item.', 'error');
             }
         });
     }
 
     function removerItem() {
-        var pedidoToDelete = null; // Variável para armazenar o pedido a ser excluído
-        var row = $('#dg').datagrid('getSelected'); // Seleciona a linha do pedido
+        var itemToDelete = null; 
+        var row = $('#dg_i').datagrid('getSelected'); 
         if (row) {
             $.messager.confirm({
                 title: 'Exclusão',
-                msg: 'Tem certeza que deseja excluir esse pedido?',
+                msg: 'Tem certeza que deseja excluir esse item?',
                 fn: function(r) {
                     if (r) {
-                        pedidoToDelete = row; // Armazena o pedido selecionado
-                        var num_pedido = pedidoToDelete.num_pedido;
+                        itemToDelete = row; 
+                        var num_seq_item = itemToDelete.num_seq_item;
+                        var num_pedido = itemToDelete.num_pedido;
                         $.ajax({
-                                url: 'excluir_pedido.php',
+                                url: 'item_excluir.php',
                                 type: 'GET',
                                 data: {
+                                    num_seq_item: num_seq_item,
                                     num_pedido: num_pedido
                                 }
                             })
@@ -259,26 +157,35 @@ if (!empty($dados_pedido['itens'])): ?>
 
                                 if (jsonResponse.status) {
                                     return $.messager.alert('Processamento Executado', jsonResponse.msg, 'info', function(r) {
-                                        $('#dg').datagrid('reload');
+                                        $('#dg_i').datagrid('reload');
                                     });
                                 }
 
                                 $.messager.alert('Erro no processamento', jsonResponse.msg, 'error', function(r) {
-                                    $('#dg').datagrid('reload');
+                                    $('#dg_i').datagrid('reload');
                                 });
                             })
                     }
                 }
             });
         } else {
-            $.messager.alert('Atenção', 'Selecione um pedido para ser excluído!', 'info');
-            $('#dg').datagrid('reload');
+            $.messager.alert('Atenção', 'Selecione um item para ser excluído!', 'info');
+            $('#dg_i').datagrid('reload');
 
         }
     }
 
+    function editarItem() {
+        const row = $('#dg_i').datagrid('getSelected');
+        if (!row) {
+            $.messager.alert('Atenção', 'Selecione um item para editar.', 'warning');
+            return;
+        }
+
+        window.location.href = `item_adicionar.php?num_pedido=<?= $num_pedido ?>&num_seq_item=${row.num_seq_item}`;
+    }
+
     function cancelarItem() {
         $('#dg_i').datagrid('rejectChanges');
-        editIndex = undefined;
     }
 </script>

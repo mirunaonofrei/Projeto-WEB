@@ -6,38 +6,40 @@ $stmt = $conn->prepare("SELECT cod_item, den_item FROM item");
 $stmt->execute();
 $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    require_once 'db.php';
+    header('Content-Type: application/json');
+
+    $stmt = $conn->prepare("SELECT cod_item, den_item FROM item");
+    $stmt->execute();
+    $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode([
+        'status' => true,
+        'itens_result' => $itens
+    ]);
+    exit();
+}
+
+
 $ies_new = false;
 // Caso o formulário tenha sido enviado, processar
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $num_pedido = $_POST["num_pedido"];
-    $num_seq_item = $_POST["num_seq_item"];
-    $num_seq_item_get = isset($_GET["num_seq_item"]) ? $_GET["num_seq_item"] : "";
     $cod_item = $_POST["cod_item"];
     $qtd_solicitada = $_POST["qtd_solicitada"];
-    $pre_unitario = str_replace(',', '.', $_POST["pre_unitario"]); // Corrige formato de preço
+    $pre_unitario = str_replace(',', '.', $_POST["pre_unitario"]);
 
-    // Verificar se o item já existe no pedido com o mesmo `num_seq_item`
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM item_pedido WHERE num_pedido = :num_pedido AND num_seq_item = :num_seq_item");
+    // Gerar o próximo num_seq_item
+    $stmt = $conn->prepare("SELECT COALESCE(MAX(num_seq_item), 0) + 1 AS novo_seq FROM item_pedido WHERE num_pedido = :num_pedido");
     $stmt->bindParam(':num_pedido', $num_pedido);
-    $stmt->bindParam(':num_seq_item', $num_seq_item);
     $stmt->execute();
-    $exists = $stmt->fetchColumn();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $num_seq_item = $result['novo_seq'];
 
-    if ($exists == 0) {
-        // Inserir novo item
-        $url_num_seq_prod = '';
-        $stmt = $conn->prepare("INSERT INTO item_pedido (num_pedido, num_seq_item, cod_item, qtd_solicitada, pre_unitario) 
-                                VALUES (:num_pedido, :num_seq_item, :cod_item, :qtd_solicitada, :pre_unitario)");
-        $_SESSION['mensagem'] = "Item inserido com sucesso!";
-    } else {
-        // Atualizar item existente
-        $url_num_seq_prod = "&num_seq_item=$num_seq_item";
-        $stmt = $conn->prepare("UPDATE item_pedido SET qtd_solicitada = :qtd_solicitada, pre_unitario = :pre_unitario, cod_item = :cod_item
-                                WHERE num_pedido = :num_pedido AND num_seq_item = :num_seq_item");
-        $_SESSION['mensagem'] = "Item atualizado com sucesso!";
-    }
-
-    // Vincula os parâmetros antes de executar a query
+    // Inserir novo item
+    $stmt = $conn->prepare("INSERT INTO item_pedido (num_pedido, num_seq_item, cod_item, qtd_solicitada, pre_unitario) 
+                            VALUES (:num_pedido, :num_seq_item, :cod_item, :qtd_solicitada, :pre_unitario)");
     $stmt->bindParam(':num_pedido', $num_pedido);
     $stmt->bindParam(':num_seq_item', $num_seq_item);
     $stmt->bindParam(':cod_item', $cod_item);
@@ -45,11 +47,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bindParam(':pre_unitario', $pre_unitario);
     $stmt->execute();
 
-    // Não limpa o formulário
-    // Redireciona de volta para a página de controle de pedido
-    header("Location: controlar_item_pedido.php?num_pedido=$num_pedido" . $url_num_seq_prod);
+    echo json_encode(["status" => "success"]);
     exit();
-
+    
 } else {
     // Variáveis iniciais
     $num_pedido = isset($_GET["num_pedido"]) ? $_GET["num_pedido"] : "";
@@ -94,4 +94,3 @@ if ($num_pedido && $num_seq_item) {
 }
 
 $conn = null;
-?>
