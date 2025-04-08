@@ -344,7 +344,7 @@
                             $.post('remover_item.php', {
                                 cod_item: item.cod_item
                             }, function(res) {
-                                if (res === true) {
+                                if (res) {
                                     $('#dgItens').datagrid('reload');
                                 } else {
                                     $.messager.alert('Erro', 'Erro ao remover item.', 'error');
@@ -396,25 +396,22 @@
         });
     }
 
-    // Abre um mini-formulário de edição/adição
-    // Função chamada quando o formulário é submetido
-    // Abre um mini-formulário de edição/adição
     function abrirFormularioItem(titulo, item = null) {
         if ($('#dialogItemForm').length) {
             $('#dialogItemForm').remove();
         }
 
         $('body').append(`
-        <div id="dialogItemForm" style="padding:10px">
-            <form id="formItem">
-                <div style="margin-bottom:10px">
-                    <input name="cod_item" class="easyui-textbox" label="Código:" style="width:100%" readonly>
-                </div>
-                <div style="margin-bottom:10px">
-                    <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
-                </div>
-            </form>
-        </div>
+    <div id="dialogItemForm" style="padding:10px">
+        <form id="formItem">
+            <div style="margin-bottom:10px">
+                <input name="cod_item" class="easyui-textbox" label="Código:" style="width:100%" readonly>
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
+            </div>
+        </form>
+    </div>
     `);
 
         $('#dialogItemForm').dialog({
@@ -427,7 +424,7 @@
                 iconCls: 'icon-save',
                 handler: function() {
                     $('#formItem').form('submit', {
-                        url: 'controlar_item.php',
+                        url: 'itens_gerenciar.php',
                         onSubmit: function() {
                             return $(this).form('validate');
                         },
