@@ -99,26 +99,29 @@ if (!empty($dados_pedido['itens'])): ?>
                 height: 'auto',
                 modal: true,
                 content: `<form id="form_adiciona_item">
-                    <input type="hidden" name="num_pedido" value="${num_pedido}">
-                    <div style="margin-bottom:10px">
-                        <label>Item: </label>
-                        <select class="easyui-combobox" name="cod_item" id="cod_item_form" required style="width:100%;">${itemOptions}</select>
-                        </div>
-                    <div style="margin-bottom:10px">
-            
-                        <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;">
-                    </div>
-                    <div style="margin-bottom:10px">
-                        <input class="easyui-textbox" label="Preço Unitário:" name="pre_unitario" required style="width:100%;">
-                    </div>
-                    <div style="text-align:center; padding: 10px;">
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoItem()">Salvar</a>
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
-                    </div>
-                </form>`
+                <input type="hidden" name="num_pedido" value="${num_pedido}">
+                <div style="margin-bottom:10px">
+                    <label>Item: </label>
+                    <select class="easyui-combobox" name="cod_item" id="cod_item_form" required style="width:100%;">${itemOptions}</select>
+                </div>
+                <div style="margin-bottom:10px">
+                    <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;">
+                </div>
+                <div style="margin-bottom:10px">
+                    <input class="easyui-numberbox" label="Preço Unitário:" name="pre_unitario" id="pre_unitario" required precision="2" decimalSeparator="," groupSeparator="." style="width:100%;">
+                </div>
+                <div style="text-align:center; padding: 10px;">
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoItem()">Salvar</a>
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
+                </div>
+            </form>`
             });
         });
     }
+
+
+
+
 
     function salvarNovoItem() {
         const form = $('#form_adiciona_item');
@@ -215,10 +218,11 @@ if (!empty($dados_pedido['itens'])): ?>
             $('body').append('<div id="dialogAddItem"></div>');
 
             $.getJSON('item_adicionar.php', function(data) {
-                let itemOptions = `<option value="">Selecione um item</option>`;
+                let itemOptions = `<option value="${row.cod_item}" selected>${row.den_item}</option>`;
                 data.itens_result.forEach(item => {
-                    const selected = item.den_item === row.den_item ? 'selected' : '';
-                    itemOptions += `<option value="${item.cod_item}" ${selected}>${item.den_item}</option>`;
+                    if (item.den_item != row.den_item) {
+                        itemOptions += `<option value="${item.cod_item}">${item.den_item}</option>`;
+                    }
                 });
 
                 $('#dialogAddItem').dialog({
@@ -237,13 +241,14 @@ if (!empty($dados_pedido['itens'])): ?>
                         <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;" value="${row.qtd_solicitada}">
                     </div>
                     <div style="margin-bottom:10px">
-                        <input class="easyui-textbox" label="Preço Unitário:" name="pre_unitario" required style="width:100%;" value="${row.pre_unitario}">
+                        <input class="easyui-numberbox" label="Preço Unitário:" name="pre_unitario" required precision="2" decimalSeparator="," groupSeparator="." style="width:100%;" value="${row.pre_unitario.replace(/[^\d,.-]/g, '').replace(',', '.')}">   
                     </div>
                     <div style="text-align:center; padding: 10px;">
                         <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
                         <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
                     </div>
                 </form>`
+
                 });
             });
 
