@@ -2,11 +2,7 @@
 
 require_once 'db.php';
 
-// Problema de editar estava aqui
 $num_pedido = isset($_POST['num_pedido']) ? $_POST['num_pedido'] : (isset($_GET['num_pedido']) ? $_GET['num_pedido'] : null);
-
-
-
 
 if ($num_pedido) {
     // Obtém os dados do pedido

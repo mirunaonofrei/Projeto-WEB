@@ -57,8 +57,8 @@
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelar()">Cancelar</a>
     </div>
     <div id="ft" class="buttons">
-        <button id="gerenciar_itens" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Itens</button>
-        <button id="gerenciar_clientes" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart'">Gerenciar Clientes</button>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart',plain:true" onclick="gerenciar_itens()">Gerenciar Itens</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-large-smartart',plain:true" onclick="gerenciar_clientes()">Gerenciar Clientes</a>
     </div>
 
 
@@ -76,7 +76,7 @@
             onExpandRow: function(index, row) {
                 var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv'); // ddv armazena o elemento div class="ddv"
                 ddv.panel({ // converte a div em um panel EasyUI e carrega os dadosdo pedido usando AJAX
-                    href: 'get_itens_pedido.php?num_pedido=' + row.num_pedido,
+                    href: 'item_pedido.php?num_pedido=' + row.num_pedido,
                     border: false,
                     cache: false,
                     onLoad: function() {
@@ -244,8 +244,8 @@
         }
 
         $.ajax({
-            url: 'pedido_editar.php', 
-            type: 'POST', 
+            url: 'pedido_editar.php',
+            type: 'POST',
             data: form.serialize(), // Envia os dados do formulário
             dataType: 'json', // Espera uma resposta JSON
             success: function(response) {
@@ -308,5 +308,164 @@
     function cancelar() {
         $('#dg').datagrid('rejectChanges');
         editIndex = undefined;
+    }
+
+    function gerenciar_itens() {
+        if ($('#dialogGerenciarItens').length) {
+            $('#dialogGerenciarItens').remove();
+        }
+
+        $('body').append('<div id="dialogGerenciarItens"></div>');
+
+        $('#dialogGerenciarItens').dialog({
+            title: 'Gerenciar Itens',
+            width: 800,
+            height: 400,
+            closed: false,
+            cache: false,
+            modal: true,
+            buttons: [{
+                text: 'Adicionar',
+                iconCls: 'icon-add',
+                handler: function() {
+                    abrirFormularioItem('Novo Item');
+                }
+            }, {
+                text: 'Remover',
+                iconCls: 'icon-remove',
+                handler: function() {
+                    let item = $('#dgItens').datagrid('getSelected');
+                    if (!item) {
+                        $.messager.alert('Atenção', 'Selecione um item para remover.', 'warning');
+                        return;
+                    }
+                    $.messager.confirm('Confirmação', 'Deseja realmente remover este item?', function(r) {
+                        if (r) {
+                            $.post('remover_item.php', {
+                                cod_item: item.cod_item
+                            }, function(res) {
+                                if (res === true) {
+                                    $('#dgItens').datagrid('reload');
+                                } else {
+                                    $.messager.alert('Erro', 'Erro ao remover item.', 'error');
+                                }
+                            }, 'json');
+                        }
+                    });
+                }
+            }, {
+                text: 'Editar',
+                iconCls: 'icon-edit',
+                handler: function() {
+                    let item = $('#dgItens').datagrid('getSelected');
+                    if (!item) {
+                        $.messager.alert('Atenção', 'Selecione um item para editar.', 'warning');
+                        return;
+                    }
+                    abrirFormularioItem('Editar Item', item);
+                }
+            }, {
+                text: 'Cancelar',
+                iconCls: 'icon-undo',
+                handler: function() {
+                    $('#dialogGerenciarItens').dialog('close');
+                }
+            }]
+        });
+
+        $('#dialogGerenciarItens').html('<table id="dgItens"></table>');
+
+        $('#dgItens').datagrid({
+            url: 'buscar_itens.php',
+            columns: [
+                [{
+                        field: 'cod_item',
+                        title: 'Código',
+                        width: 100
+                    },
+                    {
+                        field: 'den_item',
+                        title: 'Nome do Item',
+                        width: 200
+                    }
+                ]
+            ],
+            pagination: true,
+            singleSelect: true,
+            fitColumns: true
+        });
+    }
+
+    // Abre um mini-formulário de edição/adição
+    // Função chamada quando o formulário é submetido
+    // Abre um mini-formulário de edição/adição
+    function abrirFormularioItem(titulo, item = null) {
+        if ($('#dialogItemForm').length) {
+            $('#dialogItemForm').remove();
+        }
+
+        $('body').append(`
+        <div id="dialogItemForm" style="padding:10px">
+            <form id="formItem">
+                <div style="margin-bottom:10px">
+                    <input name="cod_item" class="easyui-textbox" label="Código:" style="width:100%" readonly>
+                </div>
+                <div style="margin-bottom:10px">
+                    <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
+                </div>
+            </form>
+        </div>
+    `);
+
+        $('#dialogItemForm').dialog({
+            title: titulo,
+            width: 400,
+            height: 200,
+            modal: true,
+            buttons: [{
+                text: 'Salvar',
+                iconCls: 'icon-save',
+                handler: function() {
+                    $('#formItem').form('submit', {
+                        url: 'controlar_item.php',
+                        onSubmit: function() {
+                            return $(this).form('validate');
+                        },
+                        success: function(resposta) {
+                            try {
+                                let res = JSON.parse(resposta);
+                                if (res === true) {
+                                    $.messager.alert('Sucesso', 'Item salvo com sucesso.', 'info');
+                                    $('#dialogItemForm').dialog('close');
+                                    $('#dgItens').datagrid('reload');
+                                } else {
+                                    $.messager.alert('Erro', 'Erro ao salvar item.', 'error');
+                                }
+                            } catch (e) {
+                                $.messager.alert('Erro', 'Resposta inválida do servidor.', 'error');
+                            }
+                        }
+                    });
+                }
+            }, {
+                text: 'Cancelar',
+                iconCls: 'icon-cancel',
+                handler: function() {
+                    $('#dialogItemForm').dialog('close');
+                }
+            }]
+        });
+
+        // Preencher dados se for edição
+        if (item) {
+            $('#formItem').form('load', item);
+        } else {
+            // Para um novo item, busca o próximo código disponível no back-end
+            $.getJSON('controlar_item.php', function(res) {
+                if (res && res.cod_item) {
+                    $('#formItem input[name="cod_item"]').val(res.cod_item);
+                }
+            });
+        }
     }
 </script>
