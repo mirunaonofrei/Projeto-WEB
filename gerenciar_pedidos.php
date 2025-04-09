@@ -402,17 +402,17 @@
         }
 
         $('body').append(`
-    <div id="dialogItemForm" style="padding:10px">
-        <form id="formItem">
-            <div style="margin-bottom:10px">
-                <input name="cod_item" class="easyui-textbox" label="Código:" style="width:100%" readonly>
-            </div>
-            <div style="margin-bottom:10px">
-                <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
-            </div>
-        </form>
-    </div>
-    `);
+<div id="dialogItemForm" style="padding:10px">
+    <form id="formItem">
+        <div style="margin-bottom:10px">
+            <input name="cod_item" class="easyui-textbox" label="Código:" style="width:100%" readonly>
+        </div>
+        <div style="margin-bottom:10px">
+            <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
+        </div>
+    </form>
+</div>
+`);
 
         $('#dialogItemForm').dialog({
             title: titulo,
@@ -423,8 +423,11 @@
                 text: 'Salvar',
                 iconCls: 'icon-save',
                 handler: function() {
+                    // Define a URL diferente para adição ou edição
+                    const url = item ? 'itens_gerenciar.php' : 'itens_adicionar.php';
+
                     $('#formItem').form('submit', {
-                        url: 'itens_gerenciar.php',
+                        url: url,
                         onSubmit: function() {
                             return $(this).form('validate');
                         },
@@ -453,12 +456,11 @@
             }]
         });
 
-        // Preencher dados se for edição
         if (item) {
             $('#formItem').form('load', item);
         } else {
-            // Para um novo item, busca o próximo código disponível no back-end
-            $.getJSON('controlar_item.php', function(res) {
+            // Se for novo item, busca o próximo código
+            $.getJSON('itens_adicionar.php', function(res) {
                 if (res && res.cod_item) {
                     $('#formItem input[name="cod_item"]').val(res.cod_item);
                 }
