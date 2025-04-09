@@ -126,8 +126,17 @@ if (!empty($dados_pedido['itens'])): ?>
     function salvarNovoItem() {
         const form = $('#form_adiciona_item');
         var item = form.find('#cod_item_form').val();
+        var qtd = form.find('[name="qtd_solicitada"]').val();
+        var preco = form.find('[name="pre_unitario"]').val();
+
         if (!item || item === "") {
             $.messager.alert('Erro', 'Selecione um item para continuar.', 'error');
+            return;
+        }
+
+        // Verificação de múltiplas vírgulas ou pontos
+        if ((qtd.match(/[.,]/g) || []).length > 1 || (preco.match(/[.,]/g) || []).length > 1) {
+            $.messager.alert('Erro de Formato', 'Quantidade e preço devem usar apenas um separador decimal (vírgula ou ponto). Exemplo: "10,50" ou "10.50".', 'error');
             return;
         }
 
@@ -135,6 +144,7 @@ if (!empty($dados_pedido['itens'])): ?>
             $.messager.alert('Erro', 'Preencha todos os campos corretamente.', 'error');
             return;
         }
+
         $.ajax({
             url: 'item_adicionar.php',
             type: 'POST',
@@ -143,13 +153,13 @@ if (!empty($dados_pedido['itens'])): ?>
                 $('#dialogAddItem').dialog('close');
                 $('#dg').datagrid('reload');
                 $('#dg_i').datagrid('reload');
-                //location.reload(); // recarrega a tabela após sucesso
             },
             error: function() {
                 $.messager.alert('Erro', 'Erro ao adicionar item.', 'error');
             }
         });
     }
+
 
     function removerItem() {
         var itemToDelete = null;
@@ -241,7 +251,7 @@ if (!empty($dados_pedido['itens'])): ?>
                         <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;" value="${row.qtd_solicitada}">
                     </div>
                     <div style="margin-bottom:10px">
-                        <input class="easyui-numberbox" label="Preço Unitário:" name="pre_unitario" required precision="2" decimalSeparator="," groupSeparator="." style="width:100%;" value="${row.pre_unitario.replace(/[^\d,.-]/g, '').replace(',', '.')}">   
+                        <input class="easyui-numberbox" label="Preço Unitário:" name="pre_unitario" required precision="2" decimalSeparator="," groupSeparator="." style="width:100%;" value="${row.pre_unitario}">   
                     </div>
                     <div style="text-align:center; padding: 10px;">
                         <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
@@ -260,6 +270,14 @@ if (!empty($dados_pedido['itens'])): ?>
 
     function salvarEdicaoItem() {
         const form = $('#form_edita_item');
+        var qtd = form.find('[name="qtd_solicitada"]').val();
+        var preco = form.find('[name="pre_unitario"]').val();
+
+        // Verificação de múltiplas vírgulas ou pontos
+        if ((qtd.match(/[.,]/g) || []).length > 1 || (preco.match(/[.,]/g) || []).length > 1) {
+            $.messager.alert('Erro de Formato', 'Quantidade e preço devem usar apenas um separador decimal (vírgula ou ponto). Exemplo: "10,50" ou "10.50".', 'error');
+            return;
+        }
 
         if (!form.form('validate')) {
             $.messager.alert('Erro', 'Preencha todos os campos corretamente.', 'error');
@@ -280,6 +298,7 @@ if (!empty($dados_pedido['itens'])): ?>
             }
         });
     }
+
 
 
     function cancelarItem() {
