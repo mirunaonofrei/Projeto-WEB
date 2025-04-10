@@ -2,42 +2,45 @@
 
 require_once 'db.php';
 
+// Recupera os itens já existentes (para o caso de usar no frontend ou outro propósito)
 $queryRecuperaitems = "SELECT cod_item, den_item FROM item";
 $stmt = $conn->prepare($queryRecuperaitems);
 $stmt->execute();
 $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Consulta para obter o próximo código disponível para o item
 $queryProxItem = "SELECT (COALESCE(MAX(cod_item), 0) + 1) AS cod_item FROM item";
 $exeProxItem = $conn->prepare($queryProxItem);
 $exeProxItem->execute();
 $rowProxItem = $exeProxItem->fetch(PDO::FETCH_ASSOC);
-$cod_item =  $rowProxItem['cod_item'];
+$cod_item = $rowProxItem['cod_item'];
 
-// Se for requisição GET, retorna os dados
+// Se for requisição GET, retorna o próximo código (cod_item) apenas
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
     header('Content-Type: application/json');
     echo json_encode([
-        "cod_item" => $cod_item,
-        "items" => $items
+        "cod_item" => $cod_item  // Retorna apenas o próximo código disponível
     ]);
     exit();
 }
 
-// Se for requisição POST, insere um novo Item
+// Se for requisição POST, insere um novo Item com cod_item e den_item
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $cod_item = $_POST["cod_item"];
         $den_item = $_POST["den_item"];
 
         // Inicia a inserção no banco de dados
-        $queryInsereItem = "INSERT INTO Item (cod_item, den_item) VALUES (:cod_item, :den_item)";
+        $queryInsereItem = "INSERT INTO item (cod_item, den_item) VALUES (:cod_item, :den_item)";
         $stmt = $conn->prepare($queryInsereItem);
         $stmt->bindParam(':cod_item', $cod_item);
         $stmt->bindParam(':den_item', $den_item);
         $stmt->execute();
-        echo json_encode(true);
+        header('Content-Type: application/json');
+        echo json_encode(["status" => true]);
     } catch (Exception $e) {
-        echo json_encode(false);
+        header('Content-Type: application/json');
+        echo json_encode(["status" => false . $e->getMessage()]);
     }
     exit();
 }

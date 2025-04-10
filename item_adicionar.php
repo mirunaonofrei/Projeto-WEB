@@ -7,7 +7,6 @@ $stmt->execute();
 $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-    require_once 'db.php';
     header('Content-Type: application/json');
 
     $stmt = $conn->prepare("SELECT cod_item, den_item FROM item");

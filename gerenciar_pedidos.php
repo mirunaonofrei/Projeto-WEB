@@ -328,31 +328,25 @@
                 text: 'Adicionar',
                 iconCls: 'icon-add',
                 handler: function() {
-                    abrirFormularioItem('Novo Item');
+                    abrirFormularioAdicionaItem();
                 }
             }, {
                 text: 'Remover',
                 iconCls: 'icon-remove',
                 handler: function() {
                     let item = $('#dgItens').datagrid('getSelected');
+
                     if (!item) {
                         $.messager.alert('Atenção', 'Selecione um item para remover.', 'warning');
                         return;
                     }
                     $.messager.confirm('Confirmação', 'Deseja realmente remover este item?', function(r) {
                         if (r) {
-                            $.post('itens_remover.php', {
-                                cod_item: item.cod_item
-                            }, function(res) {
-                                if (res) {
-                                    $('#dgItens').datagrid('reload');
-                                } else {
-                                    $.messager.alert('Erro', 'Erro ao remover item.', 'error');
-                                }
-                            }, 'json');
+                            removerItem(item.cod_item);
                         }
                     });
                 }
+
             }, {
                 text: 'Editar',
                 iconCls: 'icon-edit',
@@ -362,7 +356,7 @@
                         $.messager.alert('Atenção', 'Selecione um item para editar.', 'warning');
                         return;
                     }
-                    abrirFormularioItem('Editar Item', item);
+                    abrirFormularioEditaItem(item.cod_item);
                 }
             }, {
                 text: 'Cancelar',
@@ -396,75 +390,157 @@
         });
     }
 
-    function abrirFormularioItem(titulo, item = null) {
-        if ($('#dialogItemForm').length) {
-            $('#dialogItemForm').remove();
-        }
+    function abrirFormularioAdicionaItem() {
+        $.getJSON('itens_adicionar.php', function(data) {
 
-        $('body').append(`
-<div id="dialogItemForm" style="padding:10px">
-    <form id="formItem">
-        <div style="margin-bottom:10px">
-            <input name="cod_item" class="easyui-textbox" label="Código:" style="width:100%" readonly>
-        </div>
-        <div style="margin-bottom:10px">
-            <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
-        </div>
-    </form>
-</div>
-`);
+            $('body').append(`<div id="dialogItemForm" style="padding:10px"></div>`);
 
-        $('#dialogItemForm').dialog({
-            title: titulo,
-            width: 400,
-            height: 200,
-            modal: true,
-            buttons: [{
-                text: 'Salvar',
-                iconCls: 'icon-save',
-                handler: function() {
-                    // Define a URL diferente para adição ou edição
-                    const url = item ? 'itens_gerenciar.php' : 'itens_adicionar.php';
-
-                    $('#formItem').form('submit', {
-                        url: url,
-                        onSubmit: function() {
-                            return $(this).form('validate');
-                        },
-                        success: function(resposta) {
-                            try {
-                                let res = JSON.parse(resposta);
-                                if (res === true) {
-                                    $.messager.alert('Sucesso', 'Item salvo com sucesso.', 'info');
-                                    $('#dialogItemForm').dialog('close');
-                                    $('#dgItens').datagrid('reload');
-                                } else {
-                                    $.messager.alert('Erro', 'Erro ao salvar item.', 'error');
-                                }
-                            } catch (e) {
-                                $.messager.alert('Erro', 'Resposta inválida do servidor.', 'error');
-                            }
-                        }
-                    });
-                }
-            }, {
-                text: 'Cancelar',
-                iconCls: 'icon-cancel',
-                handler: function() {
-                    $('#dialogItemForm').dialog('close');
-                }
-            }]
-        });
-
-        if (item) {
-            $('#formItem').form('load', item);
-        } else {
-            // Se for novo item, busca o próximo código
-            $.getJSON('itens_adicionar.php', function(res) {
-                if (res && res.cod_item) {
-                    $('#formItem input[name="cod_item"]').val(res.cod_item);
-                }
+            $('#dialogItemForm').dialog({
+                width: 400,
+                height: 300,
+                modal: true,
+                content: `<form id="formItem">
+            <div style="margin-bottom:10px">
+                <input name="cod_item" class="easyui-textbox" label="Código:" value="${data.cod_item} "style="width:100%" readonly>
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="den_item" class="easyui-textbox" label="Nome do Item:" style="width:100%" required>
+            </div>
+            <div style="text-align:center; padding-top: 10px;">
+                        <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoItem()">Salvar</a>
+                    </div>
+                    </form>`,
+                buttons: [{
+                    text: 'Fechar',
+                    handler: function() {
+                        $('#dialogItemForm').dialog('close');
+                    }
+                }]
             });
+
+        });
+    }
+
+    function abrirFormularioEditaItem(cod_item) {
+        $.getJSON('itens_editar.php', {
+            cod_item: cod_item
+        }, function(data) {
+            if ($('#dialogEditItem').length) {
+                $('#dialogEditItem').remove();
+            }
+            $('body').append('<div id="dialogEditItem"></div>');
+
+            $('#dialogEditItem').dialog({
+                title: 'Editar Item',
+                width: 400,
+                height: 300,
+                modal: true,
+                content: `<form id="formItem">
+                <div style="margin-bottom:10px">
+                    <input name="cod_item" class="easyui-textbox" label="Código:" value="${data.cod_item}" style="width:100%" readonly>
+                </div>
+                <div style="margin-bottom:10px">
+                    <input name="den_item" class="easyui-textbox" label="Nome do Item:" value="${data.den_item}" style="width:100%" required>
+                </div>
+                <div style="text-align:center; padding-top: 10px;">
+                    <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
+                </div>
+            </form>`,
+                buttons: [{
+                    text: 'Fechar',
+                    handler: function() {
+                        $('#dialogEditItem').dialog('close');
+                    }
+                }]
+            });
+        }).fail(function() {
+            $.messager.alert('Erro', 'Erro ao carregar os dados do item!', 'error');
+        });
+    }
+
+
+    function removerItem(cod_item) {
+        $.post('itens_remover.php', {
+            cod_item: cod_item
+        }, function(res) {
+            if (res) {
+                $('#dgItens').datagrid('reload');
+                $.messager.alert('Sucesso', 'Item removido com sucesso.', 'info');
+            } else {
+                $.messager.alert('Erro', 'Erro ao remover item.', 'error');
+            }
+        }, 'json');
+    }
+
+    function salvarNovoItem() {
+        var form = $('#dialogItemForm').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
         }
+
+        var den_item = form.find('[name="den_item"]').val();
+        if (!den_item || den_item === "") {
+            $.messager.alert('Erro', 'Informe o nome do item para continuar.', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: 'itens_adicionar.php',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    $('#dgItens').datagrid('reload');
+                    $('#dialogItemForm').dialog('close');
+                    $.messager.alert('Sucesso', "Item incluído com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', response.msg || "Erro ao incluir item!", 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
+    }
+
+    function salvarEdicaoItem() {
+        var form = $('#dialogEditItem').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
+        }
+
+        var den_item = form.find('[name="den_item"]').val();
+        if (!den_item || den_item === "") {
+            $.messager.alert('Erro', 'Informe o nome do item para continuar.', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: 'itens_editar.php',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    $('#dgItens').datagrid('reload'); // Recarrega a tabela de itens
+                    $('#dialogEditItem').dialog('close'); // Fecha o diálogo após sucesso
+                    $.messager.alert('Sucesso', "Item atualizado com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', response.message || "Erro ao atualizar item!", 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
     }
 </script>
