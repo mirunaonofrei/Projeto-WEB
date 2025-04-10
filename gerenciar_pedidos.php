@@ -470,6 +470,7 @@
             if (res) {
                 $('#dgItens').datagrid('reload');
                 $.messager.alert('Sucesso', 'Item removido com sucesso.', 'info');
+                $('#dg').datagrid('reload');
             } else {
                 $.messager.alert('Erro', 'Erro ao remover item.', 'error');
             }
@@ -500,6 +501,7 @@
                     $('#dgItens').datagrid('reload');
                     $('#dialogItemForm').dialog('close');
                     $.messager.alert('Sucesso', "Item incluído com sucesso!", 'info');
+                    $('#dg').datagrid('reload');
                 } else {
                     $.messager.alert('Erro', response.msg || "Erro ao incluir item!", 'error');
                 }
@@ -535,8 +537,248 @@
                     $('#dgItens').datagrid('reload'); // Recarrega a tabela de itens
                     $('#dialogEditItem').dialog('close'); // Fecha o diálogo após sucesso
                     $.messager.alert('Sucesso', "Item atualizado com sucesso!", 'info');
+                    $('#dg').datagrid('reload');
                 } else {
                     $.messager.alert('Erro', response.message || "Erro ao atualizar item!", 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
+    }
+
+
+
+
+    function gerenciar_clientes() {
+        if ($('#dialogGerenciarClientes').length) {
+            $('#dialogGerenciarClientes').remove();
+        }
+
+        $('body').append('<div id="dialogGerenciarClientes"></div>');
+
+        $('#dialogGerenciarClientes').dialog({
+            title: 'Gerenciar Clientes',
+            width: 800,
+            height: 400,
+            closed: false,
+            cache: false,
+            modal: true,
+            buttons: [{
+                text: 'Adicionar',
+                iconCls: 'icon-add',
+                handler: function() {
+                    abrirFormularioAdicionaCliente();
+                }
+            }, {
+                text: 'Remover',
+                iconCls: 'icon-remove',
+                handler: function() {
+                    let cliente = $('#dgClientes').datagrid('getSelected');
+
+                    if (!cliente) {
+                        $.messager.alert('Atenção', 'Selecione um cliente para remover.', 'warning');
+                        return;
+                    }
+                    $.messager.confirm('Confirmação', 'Deseja realmente remover este cliente?', function(r) {
+                        if (r) {
+                            excluirCliente(cliente.cod_cliente);
+                        }
+                    });
+                }
+
+            }, {
+                text: 'Editar',
+                iconCls: 'icon-edit',
+                handler: function() {
+                    let cliente = $('#dgClientes').datagrid('getSelected');
+                    if (!cliente) {
+                        $.messager.alert('Atenção', 'Selecione um cliente para editar.', 'warning');
+                        return;
+                    }
+                    abrirFormularioEditaCliente(cliente.cod_cliente);
+                }
+            }, {
+                text: 'Cancelar',
+                iconCls: 'icon-undo',
+                handler: function() {
+                    $('#dialogGerenciarClientes').dialog('close');
+                }
+            }]
+        });
+
+        $('#dialogGerenciarClientes').html('<table id="dgClientes"></table>');
+
+        $('#dgClientes').datagrid({
+            url: 'buscar_clientes.php',
+            columns: [
+                [{
+                        field: 'cod_cliente',
+                        title: 'Código',
+                        width: 100
+                    },
+                    {
+                        field: 'nom_cliente',
+                        title: 'Nome do cliente',
+                        width: 200
+                    }
+                ]
+            ],
+            pagination: true,
+            singleSelect: true,
+            fitColumns: true
+        });
+    }
+
+    function abrirFormularioAdicionaCliente() {
+        $.getJSON('cliente_adicionar.php', function(data) {
+
+            $('body').append(`<div id="dialogClienteForm" style="padding:10px"></div>`);
+
+            $('#dialogClienteForm').dialog({
+                width: 400,
+                height: 300,
+                modal: true,
+                content: `<form id="formCliente">
+            <div style="margin-bottom:10px">
+                <input name="cod_cliente" class="easyui-textbox" label="Código:" value="${data.cod_cliente} "style="width:100%" readonly>
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="nom_cliente" class="easyui-textbox" label="Nome do Cliente:" style="width:100%" required>
+            </div>
+            <div style="text-align:center; padding-top: 10px;">
+                        <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="adicionarNovoCliente()">Salvar</a>
+                    </div>
+                    </form>`,
+                buttons: [{
+                    text: 'Fechar',
+                    handler: function() {
+                        $('#dialogClienteForm').dialog('close');
+                    }
+                }]
+            });
+
+        });
+    }
+
+    function abrirFormularioEditaCliente(cod_cliente) {
+        $.getJSON('cliente_editar.php', {
+            cod_cliente: cod_cliente
+        }, function(data) {
+            if ($('#dialogEditCliente').length) {
+                $('#dialogEditCliente').remove();
+            }
+            $('body').append('<div id="dialogEditCliente"></div>');
+
+            $('#dialogEditCliente').dialog({
+                title: 'Editar Cliente',
+                width: 400,
+                height: 300,
+                modal: true,
+                content: `<form id="formCliente">
+                <div style="margin-bottom:10px">
+                    <input name="cod_cliente" class="easyui-textbox" label="Código:" value="${data.cod_cliente}" style="width:100%" readonly>
+                </div>
+                <div style="margin-bottom:10px">
+                    <input name="nom_cliente" class="easyui-textbox" label="Nome do Cliente:" value="${data.nom_cliente}" style="width:100%" required>
+                </div>
+                <div style="text-align:center; padding-top: 10px;">
+                    <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvaEdicaoCliente()">Salvar</a>
+                </div>
+            </form>`,
+                buttons: [{
+                    text: 'Fechar',
+                    handler: function() {
+                        $('#dialogEditCliente').dialog('close');
+                    }
+                }]
+            });
+        }).fail(function() {
+            $.messager.alert('Erro', 'Erro ao carregar os dados do cliente!', 'error');
+        });
+    }
+
+
+    function excluirCliente(cod_cliente) {
+        console.log(cod_cliente)
+        $.post('cliente_remover.php', {
+            cod_cliente: cod_cliente
+        }, function(res) {
+            console.log(res)
+            if (res) {
+                $('#dgClientes').datagrid('reload');
+                $.messager.alert('Sucesso', 'Cliente removido com sucesso.', 'info');
+            } else {
+                $.messager.alert('Erro', 'Erro ao remover Cliente.', 'error');
+            }
+        }, 'json');
+    }
+
+    function adicionarNovoCliente() {
+        var form = $('#dialogClienteForm').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
+        }
+
+        var nom_cliente = form.find('[name="nom_cliente"]').val();
+        if (!nom_cliente || nom_cliente === "") {
+            $.messager.alert('Erro', 'Informe o nome do cliente para continuar.', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: 'cliente_adicionar.php',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    $('#dgClientes').datagrid('reload');
+                    $('#dialogClienteForm').dialog('close');
+                    $.messager.alert('Sucesso', "Cliente incluído com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', response.msg || "Erro ao incluir cliente!", 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro AJAX:", xhr.responseText);
+                $.messager.alert('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
+    }
+
+    function salvaEdicaoCliente() {
+        var form = $('#dialogEditCliente').find('form');
+
+        if (!form.length) {
+            $.messager.alert('Erro', 'Nenhum formulário encontrado.', 'error');
+            return;
+        }
+
+        var nom_cliente = form.find('[name="nom_cliente"]').val();
+        if (!nom_cliente || nom_cliente === "") {
+            $.messager.alert('Erro', 'Informe o nome do cliente para continuar.', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: 'cliente_editar.php',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    $('#dgClientes').datagrid('reload'); // Recarrega a tabela de clientes
+                    $('#dialogEditCliente').dialog('close'); // Fecha o diálogo após sucesso
+                    $.messager.alert('Sucesso', "Cliente atualizado com sucesso!", 'info');
+                } else {
+                    $.messager.alert('Erro', response.message || "Erro ao atualizar cliente!", 'error');
                 }
             },
             error: function(xhr, status, error) {
