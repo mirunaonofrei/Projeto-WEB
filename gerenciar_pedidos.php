@@ -341,7 +341,7 @@
                     }
                     $.messager.confirm('Confirmação', 'Deseja realmente remover este item?', function(r) {
                         if (r) {
-                            $.post('remover_item.php', {
+                            $.post('itens_remover.php', {
                                 cod_item: item.cod_item
                             }, function(res) {
                                 if (res) {
