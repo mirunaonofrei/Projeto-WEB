@@ -311,6 +311,8 @@
     }
 
     function gerenciar_itens() {
+        $('#dg').datagrid('unselectAll');
+        $('#dg_i').datagrid('unselectAll');
         if ($('#dialogGerenciarItens').length) {
             $('#dialogGerenciarItens').remove();
         }
@@ -342,7 +344,7 @@
                     }
                     $.messager.confirm('Confirmação', 'Deseja realmente remover este item?', function(r) {
                         if (r) {
-                            removerItem(item.cod_item);
+                            excluirItem(item.cod_item);
                         }
                     });
                 }
@@ -408,7 +410,7 @@
             </div>
             <div style="text-align:center; padding-top: 10px;">
                         <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarNovoItem()">Salvar</a>
+                        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="adicionarNovoItem()">Salvar</a>
                     </div>
                     </form>`,
                 buttons: [{
@@ -445,7 +447,7 @@
                 </div>
                 <div style="text-align:center; padding-top: 10px;">
                     <a href="gerenciar_pedidos.php" class="easyui-linkbutton" data-options="iconCls:'icon-back'">Voltar</a>
-                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
+                    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvaEdicaoItem()">Salvar</a>
                 </div>
             </form>`,
                 buttons: [{
@@ -461,7 +463,7 @@
     }
 
 
-    function removerItem(cod_item) {
+    function excluirItem(cod_item) {
         $.post('itens_remover.php', {
             cod_item: cod_item
         }, function(res) {
@@ -474,7 +476,7 @@
         }, 'json');
     }
 
-    function salvarNovoItem() {
+    function adicionarNovoItem() {
         var form = $('#dialogItemForm').find('form');
 
         if (!form.length) {
@@ -509,7 +511,7 @@
         });
     }
 
-    function salvarEdicaoItem() {
+    function salvaEdicaoItem() {
         var form = $('#dialogEditItem').find('form');
 
         if (!form.length) {
