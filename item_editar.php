@@ -8,7 +8,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $num_seq_item = $_POST["num_seq_item"] ?? null;
     $cod_item = $_POST["cod_item"] ?? null;
     $qtd_solicitada = $_POST["qtd_solicitada"] ?? null;
-    $pre_unitario = isset($_POST["pre_unitario"]) ? str_replace(',', '.', $_POST["pre_unitario"]) : null;
+    $pre_unitario = $_POST["pre_unitario"] ?? null;
+    $pre_unitario = is_string($pre_unitario) ? str_replace(',', '.', $pre_unitario) : floatval($pre_unitario);
+
 
     if (!$num_pedido || !$num_seq_item || !$cod_item || !$qtd_solicitada || !$pre_unitario) {
         echo json_encode(["status" => false, "msg" => "Dados incompletos para edição."]);

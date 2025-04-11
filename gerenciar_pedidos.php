@@ -38,7 +38,8 @@
                         fitColumns:true, 
                         view:detailview,
                         footer:'#ft_dg',
-                        url: 'buscar_dados_datagrid.php'">
+                        url: 'buscar_dados_datagrid.php',
+                    ">
             <thead>
                 <tr>
                     <th data-options="field:'num_pedido', width:'30%'">Pedido</th>
@@ -68,14 +69,23 @@
 
 
 <script type="text/javascript">
-    $(function() { // só executa depois que a pagina carregar
-        $('#dg').datagrid({ // seleciona d tabela com id = "dg"
-            detailFormatter: function(index, row) { // define o conteudo das linhas que expandem, passa como parametro o indez da linha e os dados dela
-                return '<div class="ddv" style="padding:5px 0"></div>'; //
+    $(function() {
+        $('#dg').datagrid({
+            detailFormatter: function(index, row) {
+                return '<div class="ddv" style="padding:5px 0"></div>';
             },
             onExpandRow: function(index, row) {
-                var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv'); // ddv armazena o elemento div class="ddv"
-                ddv.panel({ // converte a div em um panel EasyUI e carrega os dadosdo pedido usando AJAX
+                // Fecha outras linhas
+                const allRows = $('#dg').datagrid('getRows');
+                for (let i = 0; i < allRows.length; i++) {
+                    if (i !== index) {
+                        $('#dg').datagrid('collapseRow', i);
+                    }
+                }
+
+                // Carrega os detalhes da linha expandida
+                var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
+                ddv.panel({
                     href: 'item_pedido.php?num_pedido=' + row.num_pedido,
                     border: false,
                     cache: false,
@@ -88,7 +98,6 @@
                 }, 0);
             }
         });
-        $('#dg').datagrid('loadData');
     });
 
     function adicionar() {
@@ -708,7 +717,7 @@
         $.post('cliente_remover.php', {
             cod_cliente: cod_cliente
         }, function(res) {
-            
+
             if (res) {
                 $('#dgClientes').datagrid('reload');
                 $('#dg').datagrid('reload');
@@ -741,6 +750,7 @@
             success: function(response) {
                 if (response.status) {
                     $('#dgClientes').datagrid('reload');
+                    $('#dg').datagrid('reload');
                     $('#dialogClienteForm').dialog('close');
                     $.messager.alert('Sucesso', "Cliente incluído com sucesso!", 'info');
                 } else {
@@ -775,6 +785,7 @@
             dataType: 'json',
             success: function(response) {
                 if (response.status) {
+                    $('#dg').datagrid('reload');
                     $('#dgClientes').datagrid('reload'); // Recarrega a tabela de clientes
                     $('#dialogEditCliente').dialog('close'); // Fecha o diálogo após sucesso
                     $.messager.alert('Sucesso', "Cliente atualizado com sucesso!", 'info');
