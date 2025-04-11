@@ -2,27 +2,40 @@
 require_once 'db.php';
 
 $cod_cliente = isset($_POST["cod_cliente"]) ? intval($_POST["cod_cliente"]) : 0;
+
 try {
-    // Iniciar transação
     $conn->beginTransaction();
 
-    // Deletar registros da tabela cliente_pedido relacionados ao cliente
-    $stmt_cliente_pedido = $conn->prepare("DELETE FROM pedido WHERE cod_cliente = :cod_cliente");
-    $stmt_cliente_pedido->bindParam(':cod_cliente', $cod_cliente, PDO::PARAM_INT);
-    $stmt_cliente_pedido->execute();
+    // Buscar todos os pedidos do cliente
+    $stmt_pedidos = $conn->prepare("SELECT num_pedido FROM pedido WHERE cod_cliente = :cod_cliente");
+    $stmt_pedidos->bindParam(':cod_cliente', $cod_cliente, PDO::PARAM_INT);
+    $stmt_pedidos->execute();
+    $pedidos = $stmt_pedidos->fetchAll(PDO::FETCH_COLUMN); // retorna um array com num_pedido
 
-    // Deletar o cliente da tabela cliente
+    // Excluir itens de todos os pedidos
+    $stmt_itens = $conn->prepare("DELETE FROM item_pedido WHERE num_pedido = :num_pedido");
+    foreach ($pedidos as $num_pedido) {
+        $stmt_itens->bindParam(':num_pedido', $num_pedido, PDO::PARAM_INT);
+        $stmt_itens->execute();
+    }
+
+    // Excluir os pedidos
+    $stmt_pedido = $conn->prepare("DELETE FROM pedido WHERE cod_cliente = :cod_cliente");
+    $stmt_pedido->bindParam(':cod_cliente', $cod_cliente, PDO::PARAM_INT);
+    $stmt_pedido->execute();
+
+    // Excluir o cliente
     $stmt_cliente = $conn->prepare("DELETE FROM cliente WHERE cod_cliente = :cod_cliente");
     $stmt_cliente->bindParam(':cod_cliente', $cod_cliente, PDO::PARAM_INT);
     $stmt_cliente->execute();
 
-    // Commit da transação
     $conn->commit();
-
-    echo json_encode(true); // Indica que a remoção foi bem-sucedida
+    echo json_encode(['success' => true]);
 } catch (PDOException $e) {
-    // Rollback caso algo dê errado
     $conn->rollBack();
-    echo json_encode(false); // Caso não tenha sido possível remover o cliente
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
 }
 exit();

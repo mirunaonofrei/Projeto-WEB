@@ -708,9 +708,10 @@
         $.post('cliente_remover.php', {
             cod_cliente: cod_cliente
         }, function(res) {
-            console.log(res)
+            
             if (res) {
                 $('#dgClientes').datagrid('reload');
+                $('#dg').datagrid('reload');
                 $.messager.alert('Sucesso', 'Cliente removido com sucesso.', 'info');
             } else {
                 $.messager.alert('Erro', 'Erro ao remover Cliente.', 'error');
