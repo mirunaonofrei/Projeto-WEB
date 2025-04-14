@@ -1,6 +1,6 @@
 <?php
 
-require_once 'db.php';
+require_once '../db.php';
 
 // Recupera os itens já existentes (para o caso de usar no frontend ou outro propósito)
 $queryRecuperaClientes = "SELECT cod_cliente, nom_cliente FROM cliente";

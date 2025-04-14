@@ -1,6 +1,6 @@
 <?php
 
-require_once 'db.php';
+require_once '../db.php';
 
 
 if (!isset($_GET["num_pedido"], $_GET["num_seq_item"])) {

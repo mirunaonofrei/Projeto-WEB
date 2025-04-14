@@ -1,12 +1,13 @@
 <?php
 
-require_once 'db.php';
+require_once '../db.php';
 
 $num_pedido = isset($_POST['num_pedido']) ? $_POST['num_pedido'] : (isset($_GET['num_pedido']) ? $_GET['num_pedido'] : null);
 
 if ($num_pedido) {
     // Obtém os dados do pedido
-    $stmt = $conn->prepare("SELECT * FROM pedido WHERE num_pedido = :num_pedido");
+    $selecionaPedido = "SELECT * FROM pedido WHERE num_pedido = :num_pedido";
+    $stmt = $conn->prepare($selecionaPedido);
     $stmt->bindParam(':num_pedido', $num_pedido);
     $stmt->execute();
     $pedido = $stmt->fetch();
@@ -20,7 +21,8 @@ if ($num_pedido) {
     // Se for requisição GET, retorna os dados
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
         // Carregar os clientes para o formulário
-        $stmtClientes = $conn->prepare("SELECT cod_cliente, nom_cliente FROM cliente");
+        $selecionaClientePedido = "SELECT cod_cliente, nom_cliente FROM cliente";
+        $stmtClientes = $conn->prepare($selecionaClientePedido);
         $stmtClientes->execute();
         $clientes = $stmtClientes->fetchAll(PDO::FETCH_ASSOC);
 
@@ -43,7 +45,8 @@ if ($num_pedido) {
             $cod_cliente = $_POST["cod_cliente"];
             $num_pedido = $_POST["num_pedido"];
 
-            $stmt = $conn->prepare("UPDATE pedido SET cod_cliente = :cod_cliente WHERE num_pedido = :num_pedido");
+            $updatePedido = "UPDATE pedido SET cod_cliente = :cod_cliente WHERE num_pedido = :num_pedido";
+            $stmt = $conn->prepare($updatePedido);
             $stmt->bindParam(':num_pedido', $num_pedido);
             $stmt->bindParam(':cod_cliente', $cod_cliente);
             $stmt->execute();

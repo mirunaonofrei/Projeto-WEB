@@ -1,6 +1,6 @@
 <?php
 
-require_once 'db.php';
+require_once '../db.php';
 
 $cod_item = isset($_POST['cod_item']) ? $_POST['cod_item'] : (isset($_GET['cod_item']) ? $_GET['cod_item'] : null);
 

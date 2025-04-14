@@ -1,6 +1,6 @@
 <?php
 
-require_once 'db.php';
+require_once '../db.php';
 
 $stmt = $conn->prepare("SELECT cod_item, den_item FROM item");
 $stmt->execute();

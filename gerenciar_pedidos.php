@@ -10,6 +10,8 @@
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
+    
+
     <style>
         body {
             background-color: rgb(224, 237, 255);
@@ -38,7 +40,7 @@
                         fitColumns:true, 
                         view:detailview,
                         footer:'#ft_dg',
-                        url: 'buscar_dados_datagrid.php',
+                        url: 'pedido/buscar_pedidos.php',
                     ">
             <thead>
                 <tr>
@@ -86,7 +88,7 @@
                 // Carrega os detalhes da linha expandida
                 var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
                 ddv.panel({
-                    href: 'item_pedido.php?num_pedido=' + row.num_pedido,
+                    href: 'item_pedido/item_pedido.php?num_pedido=' + row.num_pedido,
                     border: false,
                     cache: false,
                     onLoad: function() {
@@ -101,7 +103,7 @@
     });
 
     function adicionar() {
-        $.getJSON('pedido_adicionar.php', function(data) {
+        $.getJSON('pedido/pedido_adicionar.php', function(data) {
             if ($('#dialogAddPedido').length) {
                 $('#dialogAddPedido').remove();
             }
@@ -159,7 +161,7 @@
         }
 
         $.ajax({
-            url: 'pedido_adicionar.php',
+            url: 'pedido/pedido_adicionar.php',
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
@@ -185,7 +187,7 @@
             var pedidoToEdit = row; // Armazena o pedido selecionado
             var num_pedido = pedidoToEdit.num_pedido;
 
-            $.getJSON('pedido_editar.php', {
+            $.getJSON('pedido/pedido_editar.php', {
                 num_pedido: num_pedido
             }, function(data) {
                 if ($('#dialogAddPedido').length) {
@@ -253,7 +255,7 @@
         }
 
         $.ajax({
-            url: 'pedido_editar.php',
+            url: 'pedido/pedido_editar.php',
             type: 'POST',
             data: form.serialize(), // Envia os dados do formulário
             dataType: 'json', // Espera uma resposta JSON
@@ -285,7 +287,7 @@
                         pedidoToDelete = row; // Armazena o pedido selecionado
                         var num_pedido = pedidoToDelete.num_pedido;
                         $.ajax({
-                                url: 'pedido_excluir.php',
+                                url: 'pedido/pedido_excluir.php',
                                 type: 'GET',
                                 data: {
                                     num_pedido: num_pedido
@@ -381,7 +383,7 @@
         $('#dialogGerenciarItens').html('<table id="dgItens"></table>');
 
         $('#dgItens').datagrid({
-            url: 'buscar_itens.php',
+            url: 'item/buscar_itens.php',
             columns: [
                 [{
                         field: 'cod_item',
@@ -402,7 +404,7 @@
     }
 
     function abrirFormularioAdicionaItem() {
-        $.getJSON('itens_adicionar.php', function(data) {
+        $.getJSON('item/itens_adicionar.php', function(data) {
 
             $('body').append(`<div id="dialogItemForm" style="padding:10px"></div>`);
 
@@ -434,7 +436,7 @@
     }
 
     function abrirFormularioEditaItem(cod_item) {
-        $.getJSON('itens_editar.php', {
+        $.getJSON('item/itens_editar.php', {
             cod_item: cod_item
         }, function(data) {
             if ($('#dialogEditItem').length) {
@@ -473,7 +475,7 @@
 
 
     function excluirItem(cod_item) {
-        $.post('itens_remover.php', {
+        $.post('item/itens_remover.php', {
             cod_item: cod_item
         }, function(res) {
             if (res) {
@@ -501,7 +503,7 @@
         }
 
         $.ajax({
-            url: 'itens_adicionar.php',
+            url: 'item/itens_adicionar.php',
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
@@ -537,7 +539,7 @@
         }
 
         $.ajax({
-            url: 'itens_editar.php',
+            url: 'item/itens_editar.php',
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
@@ -621,7 +623,7 @@
         $('#dialogGerenciarClientes').html('<table id="dgClientes"></table>');
 
         $('#dgClientes').datagrid({
-            url: 'buscar_clientes.php',
+            url: 'cliente/buscar_clientes.php',
             columns: [
                 [{
                         field: 'cod_cliente',
@@ -642,7 +644,7 @@
     }
 
     function abrirFormularioAdicionaCliente() {
-        $.getJSON('cliente_adicionar.php', function(data) {
+        $.getJSON('cliente/cliente_adicionar.php', function(data) {
 
             $('body').append(`<div id="dialogClienteForm" style="padding:10px"></div>`);
 
@@ -674,7 +676,7 @@
     }
 
     function abrirFormularioEditaCliente(cod_cliente) {
-        $.getJSON('cliente_editar.php', {
+        $.getJSON('cliente/cliente_editar.php', {
             cod_cliente: cod_cliente
         }, function(data) {
             if ($('#dialogEditCliente').length) {
@@ -714,7 +716,7 @@
 
     function excluirCliente(cod_cliente) {
         console.log(cod_cliente)
-        $.post('cliente_remover.php', {
+        $.post('cliente/cliente_remover.php', {
             cod_cliente: cod_cliente
         }, function(res) {
 
@@ -743,7 +745,7 @@
         }
 
         $.ajax({
-            url: 'cliente_adicionar.php',
+            url: 'cliente/cliente_adicionar.php',
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
@@ -779,7 +781,7 @@
         }
 
         $.ajax({
-            url: 'cliente_editar.php',
+            url: 'cliente/cliente_editar.php',
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',

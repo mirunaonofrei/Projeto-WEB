@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once '../db.php';
 
 $cod_cliente = isset($_POST["cod_cliente"]) ? intval($_POST["cod_cliente"]) : 0;
 

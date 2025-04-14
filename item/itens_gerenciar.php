@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once '../db.php';
 header('Content-Type: application/json');
 
 // Se for uma requisição POST (edição ou inserção)

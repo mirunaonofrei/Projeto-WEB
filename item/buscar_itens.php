@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once '../db.php';
 
 // Consulta todos os itens
 $stmt = $conn->prepare("SELECT cod_item, den_item FROM item ORDER BY cod_item");

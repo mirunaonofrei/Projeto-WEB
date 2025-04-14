@@ -1,6 +1,6 @@
 <?php
 
-require_once 'db.php';
+require_once '../db.php';
 
 $sql = "SELECT pedido.num_pedido, cliente.nom_cliente  -- colunas escolhidas
         FROM pedido 

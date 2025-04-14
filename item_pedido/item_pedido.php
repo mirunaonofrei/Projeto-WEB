@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once '../db.php';
 
 function consulta_itens($conn, $num_pedido)
 {
@@ -87,7 +87,7 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
 
         $('body').append('<div id="dialogAddItem"></div>');
 
-        $.getJSON('item_adicionar.php', function(data) {
+        $.getJSON('item_pedido/item_adicionar.php', function(data) {
             let itemOptions = `<option value="">Selecione um item</option>`;
             data.itens_result.forEach(item => {
                 itemOptions += `<option value="${item.cod_item}">${item.den_item}</option>`;
@@ -141,7 +141,7 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
         }
 
         $.ajax({
-            url: 'item_adicionar.php',
+            url: 'item_pedido/item_adicionar.php',
             type: 'POST',
             data: form.serialize(),
             success: function() {
@@ -163,7 +163,7 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
             $.messager.confirm('Exclusão', 'Tem certeza que deseja excluir esse item?', function(r) {
                 if (r) {
                     $.ajax({
-                        url: 'item_excluir.php',
+                        url: 'item_pedido/item_excluir.php',
                         type: 'GET',
                         data: {
                             num_seq_item: row.num_seq_item,
@@ -204,7 +204,7 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
 
         $('body').append('<div id="dialogAddItem"></div>');
 
-        $.getJSON('item_adicionar.php', function(data) {
+        $.getJSON('item_pedido/item_adicionar.php', function(data) {
             let itemOptions = `<option value="${row.cod_item}" selected>${row.den_item}</option>`;
             data.itens_result.forEach(item => {
                 if (item.cod_item != row.cod_item) {
@@ -255,7 +255,7 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
         }
 
         $.ajax({
-            url: 'item_editar.php',
+            url: 'item_pedido/item_editar.php',
             type: 'POST',
             data: form.serialize(),
             success: function() {
