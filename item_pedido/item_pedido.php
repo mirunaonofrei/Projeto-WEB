@@ -15,18 +15,22 @@ function consulta_itens($conn, $num_pedido)
     $itens_result = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
 
     $total = 0;
-    foreach ($itens_result as $item) {
-        $total += $item['qtd_solicitada'] * $item['pre_unitario'];
+    foreach ($itens_result as $key => $item) {
+        $itens_result[$key]['total'] = $item['qtd_solicitada'] * $item['pre_unitario'];
+        $total += $itens_result[$key]['total'];
     }
 
     return [
-        'itens' => $itens_result,
+        'rows' => $itens_result,
         'total' => number_format($total, 2, ',', '.')
     ];
 }
 
 $num_pedido = $_GET['num_pedido'];
 $dados_pedido = consulta_itens($conn, $num_pedido);
+//showArray($dados_pedido);
+$json_dados_pedido = json_encode($dados_pedido);
+//showArray($json_dados_pedido);
 ?>
 
 <table id="dg_i" class="easyui-datagrid" style="width:750px;" data-options="singleSelect:true, footer:'#ft_dg_i'">
@@ -42,7 +46,7 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
     <tbody>
         <?php
         $total_pedido = 0;
-        foreach ($dados_pedido['itens'] as $item):
+        foreach ($dados_pedido['rows'] as $item):
             $subtotal = $item['qtd_solicitada'] * $item['pre_unitario'];
             $total_pedido += $subtotal;
         ?>
@@ -65,18 +69,6 @@ $dados_pedido = consulta_itens($conn, $num_pedido);
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelarItem()">Cancelar</a>
     </div>
 
-    <?php if (empty($dados_pedido['itens'])): ?>
-        <div style="width:750px; text-align:center; padding: 10px 0; background-color: #f5f5f5;">
-            Nenhum item encontrado para este pedido.
-        </div>
-    <?php else: ?>
-        <div style="text-align: right; vertical-align: center; width: 148px; padding-top:5px; background-color: white;">
-            <a>Total: &nbsp;</a>
-        </div>
-        <div style="align-items: left; vertical-align: center; width: 148px; padding-top:5px; background-color: white;">
-            <a>&nbsp;R$ <?= number_format($total_pedido, 2, ',', '.') ?></a>
-        </div>
-    <?php endif; ?>
 </div>
 
 <script type="text/javascript">

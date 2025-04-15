@@ -10,7 +10,7 @@
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript" src="https://www.jeasyui.com/easyui/src/jquery.window.js"></script>
-    
+
 
     <style>
         body {
@@ -45,7 +45,8 @@
             <thead>
                 <tr>
                     <th data-options="field:'num_pedido', width:'30%'">Pedido</th>
-                    <th data-options="field:'nom_cliente', width:'69.5%'">Cliente</th>
+                    <th data-options="field:'nom_cliente', width:'39.5%'">Cliente</th>
+                    <th data-options="field:'total_pedido', width:'30%'">Total do Pedido</th>
                 </tr>
             </thead>
         </table>
@@ -84,13 +85,13 @@
                         $('#dg').datagrid('collapseRow', i);
                     }
                 }
-
                 // Carrega os detalhes da linha expandida
                 var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
                 ddv.panel({
                     href: 'item_pedido/item_pedido.php?num_pedido=' + row.num_pedido,
                     border: false,
                     cache: false,
+                    footer: '<div></div>',
                     onLoad: function() {
                         $('#dg').datagrid('fixDetailRowHeight', index);
                     }
