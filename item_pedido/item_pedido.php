@@ -33,7 +33,7 @@ $json_dados_pedido = json_encode($dados_pedido);
 //showArray($json_dados_pedido);
 ?>
 
-<table id="dg_i" class="easyui-datagrid" style="width:750px;" data-options="singleSelect:true, footer:'#ft_dg_i'">
+<table id="dg_i" class="easyui-datagrid" style="width:750px;" data-options="singleSelect:true">
     <thead>
         <tr>
             <th data-options="field:'num_seq_item', width:40"></th>
@@ -59,17 +59,17 @@ $json_dados_pedido = json_encode($dados_pedido);
             </tr>
         <?php endforeach; ?>
     </tbody>
-</table>
 
-<div id="ft_dg_i" style="height:30px; background-color:rgb(155, 198, 255); display:flex; flex-direction: row;">
-    <div style="align-items: left; width: 452px;">
+</table>
+<div style="height:30px; width: 750px; background-color:rgb(155, 198, 255); display:flex; flex-direction: row;">
+    <div style="align-items: end; width: 750px;">
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="adicionarItem()">Adicionar</a>
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removerItem()">Remover</a>
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editarItem()">Editar</a>
         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="cancelarItem()">Cancelar</a>
     </div>
-
 </div>
+
 
 <script type="text/javascript">
     function adicionarItem() {
