@@ -186,7 +186,7 @@ $json_dados_pedido = json_encode($dados_pedido);
     function editarItem() {
         const row = $('#dg_i').datagrid('getSelected');
         const num_pedido = <?= json_encode($num_pedido) ?>;
-
+        console.log(row)
         if (!row) {
             $.messager.alert('Atenção', 'Selecione um item para ser editado!', 'info');
             return;

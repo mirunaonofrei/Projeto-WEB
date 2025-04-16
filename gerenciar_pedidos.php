@@ -86,6 +86,7 @@
                     }
                 }
                 // Carrega os detalhes da linha expandida
+                //$('#dg_i').datagrid('clearSelections');
                 var ddv = $(this).datagrid('getRowDetail', index).find('div.ddv');
                 ddv.panel({
                     href: 'item_pedido/item_pedido.php?num_pedido=' + row.num_pedido,
