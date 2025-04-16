@@ -186,7 +186,7 @@ $json_dados_pedido = json_encode($dados_pedido);
     function editarItem() {
         const row = $('#dg_i').datagrid('getSelected');
         const num_pedido = <?= json_encode($num_pedido) ?>;
-        console.log(row)
+
         if (!row) {
             $.messager.alert('Atenção', 'Selecione um item para ser editado!', 'info');
             return;
@@ -197,45 +197,64 @@ $json_dados_pedido = json_encode($dados_pedido);
         $('body').append('<div id="dialogAddItem"></div>');
 
         $.getJSON('item_pedido/item_adicionar.php', function(data) {
-            let itemOptions = `<option value="${row.cod_item}" selected>${row.den_item}</option>`;
-            data.itens_result.forEach(item => {
-                if (item.cod_item != row.cod_item) {
-                    itemOptions += `<option value="${item.cod_item}">${item.den_item}</option>`;
-                }
-            });
+            data.itens_result = data.itens_result.map(item => ({
+                ...item,
+                cod_item: item.cod_item.toString().trim(),
+                den_item: item.den_item.toString().trim()
+            }));
+
+            const itemCorrespondente = data.itens_result.find(item => item.den_item === row.den_item.trim());
+            const cod_item = itemCorrespondente?.cod_item || '';
+            const den_item = itemCorrespondente?.den_item || '';
 
             $('#dialogAddItem').dialog({
                 title: 'Editar Item',
                 width: 400,
                 modal: true,
                 content: `
-                    <form id="form_edita_item">
-                        <input type="hidden" name="num_pedido" value="${num_pedido}">
-                        <input type="hidden" name="num_seq_item" value="${row.num_seq_item}">
-                        <div style="margin-bottom:10px">
-                            <label>Item: </label>
-                            <select class="easyui-combobox" name="cod_item" id="cod_item_form" required style="width:100%;">${itemOptions}</select>
-                        </div>
-                        <div style="margin-bottom:10px">
-                            <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;" value="${row.qtd_solicitada}">
-                        </div>
-                        <div style="margin-bottom:10px">
-                            <input class="easyui-numberbox" label="Preço Unitário:" name="pre_unitario" required precision="2" decimalSeparator="," groupSeparator="." style="width:100%;" value="${parseFloat(row.pre_unitario).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}">
-                        </div>
-                        <div style="text-align:center; padding: 10px;">
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
-                        </div>
-                    </form>`
+        <form id="form_edita_item">
+            <input type="hidden" name="num_pedido" value="${num_pedido}">
+            <input type="hidden" name="num_seq_item" value="${row.num_seq_item}">
+            <div style="margin-bottom:10px">
+                <label>Item: </label>
+                <select class="easyui-combobox" name="den_item" id="den_item_form" required style="width:100%;"></select>
+            </div>
+            <div style="margin-bottom:10px">
+                <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;" value="${row.qtd_solicitada}"/>
+            </div>
+            <div style="margin-bottom:10px">
+                <input class="easyui-numberbox" label="Preço Unitário:" name="pre_unitario" required precision="2" decimalSeparator="," groupSeparator="." style="width:100%;" value="${parseFloat(row.pre_unitario.replace("R$", "").replace(".", "").replace(",", ".").trim())}"/>
+            </div>
+            <div style="text-align:center; padding: 10px;">
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="salvarEdicaoItem()">Salvar</a>
+                <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="$('#dialogAddItem').dialog('close')">Cancelar</a>
+            </div>
+        </form>`
+            });
+
+            $('#den_item_form').combobox({
+                valueField: 'den_item',
+                textField: 'den_item',
+                data: data.itens_result,
+                value: den_item,
+                onSelect: function(selectedItem) {
+                    console.log("Selecionado:", selectedItem);
+                }
             });
         });
     }
+    
+
+
+
+
 
     function salvarEdicaoItem() {
         const form = $('#form_edita_item');
+
+        console.log(form.serialize())
         const qtd = form.find('[name="qtd_solicitada"]').val();
         const preco = form.find('[name="pre_unitario"]').val();
-
         if ((qtd.match(/[.,]/g) || []).length > 1 || (preco.match(/[.,]/g) || []).length > 1) {
             $.messager.alert('Erro de Formato', 'Quantidade e preço devem usar apenas um separador decimal.', 'error');
             return;
@@ -250,16 +269,25 @@ $json_dados_pedido = json_encode($dados_pedido);
             url: 'item_pedido/item_editar.php',
             type: 'POST',
             data: form.serialize(),
-            success: function() {
-                $('#dialogAddItem').dialog('close');
-                $('#dg').datagrid('reload');
-                $('#dg_i').datagrid('reload');
+            dataType: 'json', // <- isso é importante para que o jQuery interprete o JSON corretamente
+            success: function(response) {
+                if (response.status) {
+                    $.messager.alert('Sucesso', response.msg, 'info', function() {
+                        $('#dg').datagrid('reload');
+                        $('#dg_i').datagrid('reload');
+                    });
+                    $('#dialogAddItem').dialog('close');
+                } else {
+                    $.messager.alert('Erro', response.msg, 'error');
+                }
             },
-            error: function() {
-                $.messager.alert('Erro', 'Erro ao editar o item.', 'error');
+            error: function(xhr, status, error) {
+                $.messager.alert('Erro', 'Erro ao editar o item: ' + error, 'error');
             }
         });
+
     }
+
 
     function cancelarItem() {
         $('#dg_i').datagrid('rejectChanges');
