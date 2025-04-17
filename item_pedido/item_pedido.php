@@ -216,9 +216,8 @@ $json_dados_pedido = json_encode($dados_pedido);
             <input type="hidden" name="num_pedido" value="${num_pedido}">
             <input type="hidden" name="num_seq_item" value="${row.num_seq_item}">
             <div style="margin-bottom:10px">
-                <label>Item: </label>
-                <select class="easyui-combobox" name="den_item" id="den_item_form" required style="width:100%;"></select>
-            </div>
+            <input class="easyui-textbox" label="Item: " name="den_item" readonly style="width:100%;" value="${den_item}"/>
+               </div>
             <div style="margin-bottom:10px">
                 <input class="easyui-numberbox" label="Quantidade:" name="qtd_solicitada" required style="width:100%;" value="${row.qtd_solicitada}"/>
             </div>
@@ -232,18 +231,18 @@ $json_dados_pedido = json_encode($dados_pedido);
         </form>`
             });
 
-            $('#den_item_form').combobox({
-                valueField: 'den_item',
-                textField: 'den_item',
-                data: data.itens_result,
-                value: den_item,
-                onSelect: function(selectedItem) {
-                    console.log("Selecionado:", selectedItem);
-                }
-            });
+            // $('#den_item_form').combobox({
+            //     valueField: 'den_item',
+            //     textField: 'den_item',
+            //     data: data.itens_result,
+            //     value: den_item,
+            //     onSelect: function(selectedItem) {
+            //         console.log("Selecionado:", selectedItem);
+            //     }
+            // });
         });
     }
-    
+
 
 
 
@@ -252,7 +251,7 @@ $json_dados_pedido = json_encode($dados_pedido);
     function salvarEdicaoItem() {
         const form = $('#form_edita_item');
 
-        console.log(form.serialize())
+        //console.log(form.serialize())
         const qtd = form.find('[name="qtd_solicitada"]').val();
         const preco = form.find('[name="pre_unitario"]').val();
         if ((qtd.match(/[.,]/g) || []).length > 1 || (preco.match(/[.,]/g) || []).length > 1) {
