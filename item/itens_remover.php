@@ -8,20 +8,36 @@ if ($cod_item > 0) {
         // Iniciar transação
         $conn->beginTransaction();
 
-        // Deletar registros da tabela item_pedido relacionados ao item
-        $stmt_item_pedido = $conn->prepare("DELETE FROM item_pedido WHERE cod_item = :cod_item");
+
+        $stmt_item_pedido = $conn->prepare("SELECT DISTINCT num_pedido FROM item_pedido WHERE cod_item = :cod_item");
         $stmt_item_pedido->bindParam(':cod_item', $cod_item, PDO::PARAM_INT);
         $stmt_item_pedido->execute();
+        $result = $stmt_item_pedido->fetchAll(PDO::FETCH_COLUMN);
 
-        // Deletar o item da tabela item
-        $stmt_item = $conn->prepare("DELETE FROM item WHERE cod_item = :cod_item");
-        $stmt_item->bindParam(':cod_item', $cod_item, PDO::PARAM_INT);
-        $stmt_item->execute();
 
-        // Commit da transação
-        $conn->commit();
+        if (empty($result)) {
+            // Pode excluir, pois o item não está vinculado a nenhum pedido
 
-        echo json_encode(true); // Indica que a remoção foi bem-sucedida
+            $stmt_item = $conn->prepare("DELETE FROM item WHERE cod_item = :cod_item");
+            $stmt_item->bindParam(':cod_item', $cod_item, PDO::PARAM_INT);
+            $stmt_item->execute();
+
+            // Commit da transação
+            $conn->commit();
+
+            echo json_encode([
+                "status" => true,
+                "msg" => "Item excluído com sucesso!"
+            ]);
+        } else {
+            // O item está em uso, não pode excluir
+            echo json_encode([
+                "status" => false,
+                "msg" => "Item ainda está presente nos pedidos: " . json_encode($result)
+
+            ]);
+            $conn->rollBack(); // Não esquece de cancelar a transação aqui
+        }
     } catch (PDOException $e) {
         // Rollback caso algo dê errado
         $conn->rollBack();
@@ -31,4 +47,3 @@ if ($cod_item > 0) {
     echo json_encode(false); // Caso não tenha sido possível remover o item
 }
 exit();
-?>

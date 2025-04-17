@@ -480,12 +480,12 @@
         $.post('item/itens_remover.php', {
             cod_item: cod_item
         }, function(res) {
-            if (res) {
+            if (res.status) {
                 $('#dgItens').datagrid('reload');
-                $.messager.alert('Sucesso', 'Item removido com sucesso.', 'info');
+                $.messager.alert('Sucesso', res.msg, 'info');
                 $('#dg').datagrid('reload');
             } else {
-                $.messager.alert('Erro', 'Erro ao remover item.', 'error');
+                $.messager.alert('Erro', res.msg, 'error');
             }
         }, 'json');
     }
