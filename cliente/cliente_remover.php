@@ -21,7 +21,7 @@ try {
 
         echo json_encode([
             "status" => true,
-            "msg" => "Item excluído com sucesso!"
+            "msg" => "Cliente excluído com sucesso!"
         ]);
     }
     else{

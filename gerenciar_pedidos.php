@@ -509,14 +509,12 @@
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
-            success: function(response) {
-                if (response.status) {
+            success: function(res) {
+                if (res.status) {
                     $('#dgItens').datagrid('reload');
-                    $('#dialogItemForm').dialog('close');
-                    $.messager.alert('Sucesso', "Item incluído com sucesso!", 'info');
-                    $('#dg').datagrid('reload');
+                    $.messager.alert('Sucesso', res.msg, 'info');
                 } else {
-                    $.messager.alert('Erro', response.msg || "Erro ao incluir item!", 'error');
+                    $.messager.alert('Erro', res.msg, 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -545,14 +543,14 @@
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
-            success: function(response) {
-                if (response.status) {
+            success: function(res) {
+                if (res.status) {
                     $('#dgItens').datagrid('reload'); // Recarrega a tabela de itens
                     $('#dialogEditItem').dialog('close'); // Fecha o diálogo após sucesso
                     $.messager.alert('Sucesso', "Item atualizado com sucesso!", 'info');
                     $('#dg').datagrid('reload');
                 } else {
-                    $.messager.alert('Erro', response.message || "Erro ao atualizar item!", 'error');
+                    $.messager.alert('Erro', res.msg || "Erro ao atualizar item!", 'error');
                 }
             },
             error: function(xhr, status, error) {

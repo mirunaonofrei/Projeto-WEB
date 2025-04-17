@@ -41,13 +41,32 @@ if ($cod_item) {
             $den_item = $_POST["den_item"];
             $cod_item = $_POST["cod_item"];
 
-            $stmt = $conn->prepare("UPDATE item SET den_item = :den_item WHERE cod_item = :cod_item");
-            $stmt->bindParam(':cod_item', $cod_item);
+            $queryVerificaDuplicado = "SELECT COUNT(*) FROM item WHERE den_item = :den_item";
+            $stmt = $conn->prepare($queryVerificaDuplicado);
             $stmt->bindParam(':den_item', $den_item);
             $stmt->execute();
+            $existe = $stmt->fetchColumn();
 
-            header('Content-Type: application/json');
-            echo json_encode(["status" => true]);
+            if ($existe > 0) {
+
+                echo json_encode([
+                    'status' => false,
+                    'msg' => "Já existe um item com esse nome!"
+                ]);
+            } else {
+
+                // Inicia a inserção no banco de dados
+                $queryInsereItem = "UPDATE item SET den_item = :den_item WHERE cod_item = :cod_item";
+                $stmt = $conn->prepare($queryInsereItem);
+                $stmt->bindParam(':cod_item', $cod_item);
+                $stmt->bindParam(':den_item', $den_item);
+                $stmt->execute();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'status' => true,
+                    'msg' => "Item incluido com sucesso!"
+                ]);
+            }
         } catch (Exception $e) {
             header('Content-Type: application/json');
             echo json_encode(["status" => false, "message" => $e->getMessage()]);
@@ -59,4 +78,3 @@ if ($cod_item) {
     echo json_encode(["status" => false, "message" => "Número do item não fornecido"]);
     exit();
 }
-?>
