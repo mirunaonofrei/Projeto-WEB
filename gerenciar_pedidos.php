@@ -513,6 +513,7 @@
                 if (res.status) {
                     $('#dgItens').datagrid('reload');
                     $.messager.alert('Sucesso', res.msg, 'info');
+                    $('#dialogItemForm').dialog('close'); // Fecha o diálogo após sucesso
                 } else {
                     $.messager.alert('Erro', res.msg, 'error');
                 }
@@ -747,14 +748,14 @@
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
-            success: function(response) {
-                if (response.status) {
+            success: function(res) {
+                if (res.status) {
                     $('#dgClientes').datagrid('reload');
                     $('#dg').datagrid('reload');
                     $('#dialogClienteForm').dialog('close');
                     $.messager.alert('Sucesso', "Cliente incluído com sucesso!", 'info');
                 } else {
-                    $.messager.alert('Erro', response.msg || "Erro ao incluir cliente!", 'error');
+                    $.messager.alert('Erro', res.msg || "Erro ao incluir cliente!", 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -783,14 +784,14 @@
             type: 'POST',
             data: form.serialize(),
             dataType: 'json',
-            success: function(response) {
-                if (response.status) {
+            success: function(res) {
+                if (res.status) {
                     $('#dg').datagrid('reload');
                     $('#dgClientes').datagrid('reload'); // Recarrega a tabela de clientes
                     $('#dialogEditCliente').dialog('close'); // Fecha o diálogo após sucesso
                     $.messager.alert('Sucesso', "Cliente atualizado com sucesso!", 'info');
                 } else {
-                    $.messager.alert('Erro', response.message || "Erro ao atualizar cliente!", 'error');
+                    $.messager.alert('Erro', res.msg || "Erro ao atualizar cliente!", 'error');
                 }
             },
             error: function(xhr, status, error) {

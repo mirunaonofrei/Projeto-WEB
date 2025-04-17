@@ -30,14 +30,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $cod_cliente = $_POST["cod_cliente"];
         $nom_cliente = $_POST["nom_cliente"];
 
-        // Inicia a inserção no banco de dados
-        $queryInserecliente = "INSERT INTO cliente (cod_cliente, nom_cliente) VALUES (:cod_cliente, :nom_cliente)";
-        $stmt = $conn->prepare($queryInserecliente);
-        $stmt->bindParam(':cod_cliente', $cod_cliente);
+        $queryVerificaDuplicado = "SELECT COUNT(*) FROM cliente WHERE nom_cliente = :nom_cliente";
+        $stmt = $conn->prepare($queryVerificaDuplicado);
         $stmt->bindParam(':nom_cliente', $nom_cliente);
         $stmt->execute();
-        header('Content-Type: application/json');
-        echo json_encode(["status" => true]);
+        $existe = $stmt->fetchColumn();
+
+        if ($existe > 0) {
+
+            echo json_encode([
+                'status' => false,
+                'msg' => "Já existe um cliente com esse nome!"
+            ]);
+        } else {
+
+            $queryInserecliente = "INSERT INTO cliente (cod_cliente, nom_cliente) VALUES (:cod_cliente, :nom_cliente)";
+            $stmt = $conn->prepare($queryInserecliente);
+            $stmt->bindParam(':cod_cliente', $cod_cliente);
+            $stmt->bindParam(':nom_cliente', $nom_cliente);
+            $stmt->execute();
+            header('Content-Type: application/json');
+            echo json_encode(["status" => true]);
+        }
     } catch (Exception $e) {
         header('Content-Type: application/json');
         echo json_encode(["status" => false . $e->getMessage()]);

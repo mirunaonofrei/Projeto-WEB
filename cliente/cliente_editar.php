@@ -41,16 +41,32 @@ if ($cod_cliente) {
             $nom_cliente = $_POST["nom_cliente"];
             $cod_cliente = $_POST["cod_cliente"];
 
-            $stmt = $conn->prepare("UPDATE cliente SET nom_cliente = :nom_cliente WHERE cod_cliente = :cod_cliente");
-            $stmt->bindParam(':cod_cliente', $cod_cliente);
+
+            $queryVerificaDuplicado = "SELECT COUNT(*) FROM cliente WHERE nom_cliente = :nom_cliente";
+            $stmt = $conn->prepare($queryVerificaDuplicado);
             $stmt->bindParam(':nom_cliente', $nom_cliente);
             $stmt->execute();
+            $existe = $stmt->fetchColumn();
 
-            header('Content-Type: application/json');
-            echo json_encode(["status" => true]);
+            if ($existe > 0) {
+
+                echo json_encode([
+                    'status' => false,
+                    'msg' => "Já existe um cliente com esse nome!"
+                ]);
+            } else {
+
+                $stmt = $conn->prepare("UPDATE cliente SET nom_cliente = :nom_cliente WHERE cod_cliente = :cod_cliente");
+                $stmt->bindParam(':cod_cliente', $cod_cliente);
+                $stmt->bindParam(':nom_cliente', $nom_cliente);
+                $stmt->execute();
+
+                header('Content-Type: application/json');
+                echo json_encode(["status" => true]);
+            }
         } catch (Exception $e) {
             header('Content-Type: application/json');
-            echo json_encode(["status" => false, "message" => $e->getMessage()]);
+            echo json_encode(["status" => false, "msg" => $e->getMessage()]);
         }
         exit();
     }
@@ -59,4 +75,3 @@ if ($cod_cliente) {
     echo json_encode(["status" => false, "message" => "Número do cliente não fornecido"]);
     exit();
 }
-?>
