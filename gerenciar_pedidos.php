@@ -721,13 +721,11 @@
         $.post('cliente/cliente_remover.php', {
             cod_cliente: cod_cliente
         }, function(res) {
-
-            if (res) {
+            if (res.status) {
                 $('#dgClientes').datagrid('reload');
-                $('#dg').datagrid('reload');
-                $.messager.alert('Sucesso', 'Cliente removido com sucesso.', 'info');
+                $.messager.alert('Sucesso', res.msg, 'info');
             } else {
-                $.messager.alert('Erro', 'Erro ao remover Cliente.', 'error');
+                $.messager.alert('Erro', res.msg, 'error');
             }
         }, 'json');
     }
